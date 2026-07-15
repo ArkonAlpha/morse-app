@@ -62,8 +62,16 @@
     letter-spacing:2px;margin:0;text-transform:uppercase;white-space:nowrap;
   }
   .brand .curview{font-family:var(--mono);font-size:11px;color:var(--dim);white-space:nowrap}
-  .status{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:right;line-height:1.4;flex-shrink:0}
+  .status{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:right;line-height:1.4;flex-shrink:0;cursor:pointer}
   .status b{color:var(--green);font-weight:600}
+  .headright{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  #langToggle{
+    font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.5px;
+    background:none;border:1px solid var(--line);border-radius:8px;color:var(--dim);
+    padding:4px 7px;cursor:pointer;display:flex;gap:4px;
+  }
+  #langToggle span{padding:1px 2px}
+  #langToggle span.on{color:var(--green)}
 
   /* Hamburger-Menü */
   #navBackdrop{position:fixed;inset:0;background:rgba(4,8,16,.55);z-index:25;display:none}
@@ -224,17 +232,20 @@
       <h1>Morse Code</h1>
       <span class="curview" id="curViewLbl">· Baum</span>
     </div>
-    <div class="status" id="status">bereit<br><b id="wpmLbl">12 WpM</b></div>
+    <div class="headright">
+      <button id="langToggle" aria-label="Sprache wechseln"><span data-lang-opt="de">DE</span><span data-lang-opt="en">EN</span></button>
+      <div class="status" id="status" role="button" aria-label="Zu Senden wechseln">bereit<br><b id="wpmLbl">12 WpM</b></div>
+    </div>
   </header>
 
   <div id="navBackdrop"></div>
   <nav id="navMenu">
-    <div class="mtitle">Menü</div>
-    <button data-view="tree" class="active"><span class="ic">⋔</span>Baum</button>
-    <button data-view="send"><span class="ic">·−</span>Senden</button>
-    <button data-view="learn"><span class="ic">◈</span>Lernen</button>
-    <button data-view="decode"><span class="ic">◉</span>Lesen</button>
-    <button data-view="help"><span class="ic">?</span>Hilfe</button>
+    <div class="mtitle" data-i18n="navMenu">Menü</div>
+    <button data-view="tree" class="active"><span class="ic">⋔</span><span data-i18n="navTree">Baum</span></button>
+    <button data-view="send"><span class="ic">·−</span><span data-i18n="navSend">Senden</span></button>
+    <button data-view="learn"><span class="ic">◈</span><span data-i18n="navLearn">Lernen</span></button>
+    <button data-view="decode"><span class="ic">◉</span><span data-i18n="navDecode">Lesen</span></button>
+    <button data-view="help"><span class="ic">?</span><span data-i18n="navHelp">Hilfe</span></button>
   </nav>
 
   <main>
@@ -242,8 +253,8 @@
     <section class="view active" id="v-tree">
       <div id="treeWrap"></div>
       <div class="legend" style="margin:8px 2px 10px;flex-wrap:nowrap">
-        <i><span class="cdot"></span>Punkt</i>
-        <i><span class="cbar"></span>Strich</i>
+        <i><span class="cdot"></span><span data-i18n="legendDot">Punkt</span></i>
+        <i><span class="cbar"></span><span data-i18n="legendDash">Strich</span></i>
         <span class="grow"></span>
         <button class="btn small on" id="treeAudio" aria-label="Ton umschalten" style="padding:5px 9px">🔊</button>
         <button class="btn small on" id="treeFlash" aria-label="Blitz umschalten" style="padding:5px 9px">⚡</button>
@@ -258,8 +269,8 @@
           </div>
         </div>
         <div class="keys">
-          <button class="btn keyDot" id="stepDot"><span class="ico"></span>Punkt</button>
-          <button class="btn keyDash" id="stepDash"><span class="ico"></span>Strich</button>
+          <button class="btn keyDot" id="stepDot"><span class="ico"></span><span data-i18n="keyDot">Punkt</span></button>
+          <button class="btn keyDash" id="stepDash"><span class="ico"></span><span data-i18n="keyDash">Strich</span></button>
         </div>
       </div>
 
@@ -267,61 +278,61 @@
         <div class="row" style="justify-content:space-between;align-items:center">
           <button class="btn ghost" id="stepBack" aria-label="Letzte Eingabe löschen" style="font-size:20px;padding:8px 16px">⌫</button>
           <div class="kbuf" id="stepBuf"></div>
-          <button class="btn ghost" id="stepClear">Text löschen</button>
+          <button class="btn ghost" id="stepClear" data-i18n="stepClear">Text löschen</button>
         </div>
       </div>
     </section>
 
     <!-- SEND -->
     <section class="view" id="v-send">
-      <h2>Senden</h2>
+      <h2 data-i18n="sendTitle">Senden</h2>
       <div class="card">
-        <textarea id="txtIn" rows="2" placeholder="Text eingeben, z. B. SOS" spellcheck="false">HALLO WELT</textarea>
+        <textarea id="txtIn" rows="2" data-i18n-placeholder="txtInPlaceholder" placeholder="Text eingeben, z. B. SOS" spellcheck="false">HALLO WELT</textarea>
         <div class="morseout" id="morseOut" style="margin-top:12px"></div>
       </div>
       <div class="card">
-        <label class="fld">Tempo · <span class="val" id="wpmVal">12</span> WpM</label>
+        <label class="fld"><span data-i18n="tempoLbl">Tempo</span> · <span class="val" id="wpmVal">12</span> <span data-i18n="wpmUnit">WpM</span></label>
         <input type="range" id="wpm" min="5" max="30" value="12">
         <div class="row" style="margin-top:14px">
-          <button class="btn" id="mAudio"><span>Ton</span></button>
-          <button class="btn" id="mFlash"><span>Screen-Blitz</span></button>
-          <button class="btn" id="mTorch"><span>Taschenlampe</span></button>
+          <button class="btn" id="mAudio"><span data-i18n="btnAudio">Ton</span></button>
+          <button class="btn" id="mFlash"><span data-i18n="btnScreenFlash">Screen-Blitz</span></button>
+          <button class="btn" id="mTorch"><span data-i18n="btnTorch">Taschenlampe</span></button>
         </div>
-        <div class="note" style="margin-top:10px" id="torchNote"></div>
+        <div class="note" style="margin-top:10px" id="torchNote" data-i18n="torchNoteInitial"></div>
       </div>
       <div class="card">
         <div class="row" style="justify-content:space-between">
-          <button class="btn primary grow" id="playBtn">Abspielen</button>
-          <button class="btn ghost" id="stopBtn" disabled>Stopp</button>
+          <button class="btn primary grow" id="playBtn" data-i18n="playBtn">Abspielen</button>
+          <button class="btn ghost" id="stopBtn" disabled data-i18n="stopBtn">Stopp</button>
         </div>
       </div>
     </section>
 
     <!-- LEARN -->
     <section class="view" id="v-learn">
-      <h2>Lernen</h2>
+      <h2 data-i18n="learnTitle">Lernen</h2>
       <div class="card">
         <div class="row" style="justify-content:space-between;margin-bottom:8px">
-          <span class="stat">Lektion <b id="lessonNo">1</b> · Zeichen</span>
-          <span class="stat"><b id="scoreVal">0</b> richtig · <span id="streakVal">0</span> Serie</span>
+          <span class="stat"><span data-i18n="lessonLbl">Lektion</span> <b id="lessonNo">1</b> · <span data-i18n="charLbl">Zeichen</span></span>
+          <span class="stat"><b id="scoreVal">0</b> <span data-i18n="correctLbl">richtig</span> · <span id="streakVal">0</span> <span data-i18n="streakLbl">Serie</span></span>
         </div>
         <div class="lessonbar" id="lessonBar"></div>
         <div class="row" style="margin-top:12px">
           <button class="btn ghost" id="lessonDown">−</button>
-          <div class="grow note" style="text-align:center">Koch-Methode: pro Lektion ein Zeichen mehr</div>
+          <div class="grow note" style="text-align:center" data-i18n="kochHint">Koch-Methode: pro Lektion ein Zeichen mehr</div>
           <button class="btn ghost" id="lessonUp">+</button>
         </div>
       </div>
 
       <div class="card">
         <div class="row" style="gap:8px;margin-bottom:10px">
-          <button class="btn on grow" id="modeHear">Hören → Zeichen</button>
-          <button class="btn grow" id="modeType">Zeichen → Klopfen</button>
+          <button class="btn on grow" id="modeHear" data-i18n="modeHear">Hören → Zeichen</button>
+          <button class="btn grow" id="modeType" data-i18n="modeType">Zeichen → Klopfen</button>
         </div>
 
         <div class="quizcard" id="quizHear">
           <div class="prompt" id="hearPrompt">·− ·−·</div>
-          <button class="btn amber" id="replayBtn" style="margin-top:6px">Nochmal hören</button>
+          <button class="btn amber" id="replayBtn" style="margin-top:6px" data-i18n="replayBtn">Nochmal hören</button>
           <div class="opts" id="hearOpts"></div>
           <div class="feedback" id="hearFb"></div>
         </div>
@@ -334,42 +345,42 @@
             <button class="btn" id="keyDash">−</button>
           </div>
           <div class="row" style="justify-content:center;margin-top:10px">
-            <button class="btn ghost" id="typeClear">Löschen</button>
-            <button class="btn primary" id="typeSubmit">Prüfen</button>
+            <button class="btn ghost" id="typeClear" data-i18n="typeClear">Löschen</button>
+            <button class="btn primary" id="typeSubmit" data-i18n="typeSubmit">Prüfen</button>
           </div>
           <div class="feedback" id="typeFb"></div>
         </div>
       </div>
 
       <div class="card">
-        <h2 style="margin-top:2px">Referenz</h2>
+        <h2 style="margin-top:2px" data-i18n="refTitle">Referenz</h2>
         <div class="ref" id="refGrid"></div>
       </div>
     </section>
 
     <!-- DECODE -->
     <section class="view" id="v-decode">
-      <h2>Lesen</h2>
+      <h2 data-i18n="decodeTitle">Lesen</h2>
       <div class="card">
         <div class="row" style="gap:8px">
-          <button class="btn on grow" id="srcMic">Mikrofon</button>
-          <button class="btn grow" id="srcCam">Kamera-Licht</button>
+          <button class="btn on grow" id="srcMic" data-i18n="srcMic">Mikrofon</button>
+          <button class="btn grow" id="srcCam" data-i18n="srcCam">Kamera-Licht</button>
         </div>
       </div>
 
       <div class="card">
         <div class="row" style="justify-content:space-between">
-          <span class="pill" id="capPill">Prüfe Zugriff…</span>
-          <span class="stat">Tempo-Hinweis <b id="decWpmVal">12</b></span>
+          <span class="pill" id="capPill" data-i18n="checkingAccess">Prüfe Zugriff…</span>
+          <span class="stat"><span data-i18n="tempoHint">Tempo-Hinweis</span> <b id="decWpmVal">12</b></span>
         </div>
-        <label class="fld" style="margin-top:12px">Empfindlichkeit</label>
+        <label class="fld" style="margin-top:12px" data-i18n="sensLbl">Empfindlichkeit</label>
         <input type="range" id="sens" min="10" max="90" value="40">
-        <label class="fld" style="margin-top:10px">Erwartetes Tempo (WpM)</label>
+        <label class="fld" style="margin-top:10px" data-i18n="expectedWpmLbl">Erwartetes Tempo (WpM)</label>
         <input type="range" id="decWpm" min="5" max="30" value="12">
         <div class="meter thresh"><i id="levelBar"></i><span class="mark" id="threshMark"></span></div>
         <div class="row" style="margin-top:8px">
           <span class="pill" id="signalPill">●</span>
-          <span class="note" id="signalTxt">still</span>
+          <span class="note" id="signalTxt" data-i18n="stillLbl">still</span>
         </div>
       </div>
 
@@ -378,73 +389,73 @@
 
       <div class="card">
         <div class="row" style="justify-content:space-between;margin-bottom:8px">
-          <label class="fld" style="margin:0">Erkannt</label>
-          <button class="btn ghost" id="decClear">Leeren</button>
+          <label class="fld" style="margin:0" data-i18n="erkanntLbl">Erkannt</label>
+          <button class="btn ghost" id="decClear" data-i18n="leerenBtn">Leeren</button>
         </div>
         <div class="morseout" id="decMorse" style="font-size:16px;min-height:24px;color:var(--amber)"></div>
         <div id="decText" style="font-family:var(--mono);font-size:22px;margin-top:8px;min-height:30px;word-break:break-word"></div>
       </div>
 
       <div class="card">
-        <button class="btn primary grow" id="decStart" style="width:100%">Start</button>
+        <button class="btn primary grow" id="decStart" style="width:100%" data-i18n="startBtn">Start</button>
         <div class="note" id="decNote" style="margin-top:10px"></div>
       </div>
     </section>
 
     <!-- HELP -->
     <section class="view" id="v-help">
-      <h2>Hilfe</h2>
+      <h2 data-i18n="helpTitle">Hilfe</h2>
       <div class="card">
         <div class="row" style="justify-content:space-between;margin-bottom:8px">
-          <span class="note"><b>☰ Menü</b></span>
+          <span class="note"><b data-i18n="helpMenuTitle">☰ Menü</b></span>
         </div>
-        <div class="note">Öffnet die Navigation zwischen Baum, Senden, Lernen, Lesen und dieser Hilfeseite.</div>
+        <div class="note" data-i18n="helpMenuText">Öffnet die Navigation zwischen Baum, Senden, Lernen, Lesen und dieser Hilfeseite.</div>
       </div>
 
       <div class="card">
         <div class="row" style="justify-content:space-between;margin-bottom:8px">
-          <span class="note"><b>Morsebaum</b></span>
+          <span class="note"><b data-i18n="helpTreeTitle">Morsebaum</b></span>
         </div>
         <div class="note" style="margin-bottom:10px">
           <span class="cdot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--green);vertical-align:middle;margin-right:6px"></span>
-          <b>Punkt</b> · Zweig nach rechts, gleiche Zeile.
+          <span data-i18n="helpTreeDot"><b>Punkt</b> · Zweig nach rechts, gleiche Zeile.</span>
         </div>
         <div class="note" style="margin-bottom:10px">
           <span class="cbar" style="display:inline-block;width:18px;height:6px;border-radius:3px;background:var(--danger);vertical-align:middle;margin-right:6px"></span>
-          <b>Strich</b> · Zweig nach unten, dann rechts.
+          <span data-i18n="helpTreeDash"><b>Strich</b> · Zweig nach unten, dann rechts.</span>
         </div>
-        <div class="note">Mit den Tasten <b>Punkt</b>/<b>Strich</b> unten am Baum entlanghangeln. Nach kurzer Pause wird der erreichte Buchstabe automatisch in den Text übernommen. <b>⌫</b> löscht die letzte Eingabe, <b>Text löschen</b> leert den gesamten Puffer. Ein Klick auf einen Knoten im Baum springt direkt zu diesem Buchstaben.</div>
+        <div class="note" data-i18n="helpTreeText">Mit den Tasten <b>Punkt</b>/<b>Strich</b> unten am Baum entlanghangeln. Nach kurzer Pause wird der erreichte Buchstabe automatisch in den Text übernommen. <b>⌫</b> löscht die letzte Eingabe, <b>Text löschen</b> leert den gesamten Puffer. Ein Klick auf einen Knoten im Baum springt direkt zu diesem Buchstaben.</div>
       </div>
 
       <div class="card">
         <div class="row" style="justify-content:space-between;margin-bottom:8px">
-          <span class="note"><b>🔊 / ⚡ Ton &amp; Blitz</b></span>
+          <span class="note"><b data-i18n="helpToneFlashTitle">🔊 / ⚡ Ton &amp; Blitz</b></span>
         </div>
-        <div class="note">Schalten Ton-Ausgabe (Piepton) bzw. Blitz für jeden gesendeten Impuls im Morsebaum ein oder aus. Beim Blitz wird nach Möglichkeit die Taschenlampe genutzt (Kamera-Freigabe nötig), sonst blitzt ersatzweise der Bildschirm. Ein grüner Rahmen zeigt, welche Ausgabe aktiv ist.</div>
+        <div class="note" data-i18n="helpToneFlashText">Schalten Ton-Ausgabe (Piepton) bzw. Blitz für jeden gesendeten Impuls im Morsebaum ein oder aus. Beim Blitz wird nach Möglichkeit die Taschenlampe genutzt (Kamera-Freigabe nötig), sonst blitzt ersatzweise der Bildschirm. Ein grüner Rahmen zeigt, welche Ausgabe aktiv ist.</div>
       </div>
 
       <div class="card">
         <div class="row" style="justify-content:space-between;margin-bottom:8px">
-          <span class="note"><b>Senden</b></span>
+          <span class="note"><b data-i18n="helpSendTitle">Senden</b></span>
         </div>
-        <div class="note">Text eingeben und über Ton, Bildschirm-Blitz oder Taschenlampe als Morsecode ausgeben. Die Taschenlampe steht nur zur Verfügung, wenn Gerät und Browser das unterstützen und die Kamera-Freigabe erteilt wird — sonst automatisch Bildschirm-Blitz nutzen. Das Tempo lässt sich in WpM (Wörtern pro Minute) einstellen.</div>
+        <div class="note" data-i18n="helpSendText">Text eingeben und über Ton, Bildschirm-Blitz oder Taschenlampe als Morsecode ausgeben. Die Taschenlampe steht nur zur Verfügung, wenn Gerät und Browser das unterstützen und die Kamera-Freigabe erteilt wird — sonst automatisch Bildschirm-Blitz nutzen. Das Tempo lässt sich in WpM (Wörtern pro Minute) einstellen.</div>
       </div>
 
       <div class="card">
         <div class="row" style="justify-content:space-between;margin-bottom:8px">
-          <span class="note"><b>Lernen</b></span>
+          <span class="note"><b data-i18n="helpLearnTitle">Lernen</b></span>
         </div>
-        <div class="note">Koch-Methode: Übung mit wachsender Zeichenmenge, entweder per Gehör (Ton → Buchstabe erkennen) oder per Klopfen (Buchstabe → Punkt/Strich eingeben).</div>
+        <div class="note" data-i18n="helpLearnText">Koch-Methode: Übung mit wachsender Zeichenmenge, entweder per Gehör (Ton → Buchstabe erkennen) oder per Klopfen (Buchstabe → Punkt/Strich eingeben).</div>
       </div>
 
       <div class="card">
         <div class="row" style="justify-content:space-between;margin-bottom:8px">
-          <span class="note"><b>Lesen</b></span>
+          <span class="note"><b data-i18n="helpDecodeTitle">Lesen</b></span>
         </div>
-        <div class="note">Erkennt Morsecode live über Mikrofon (Ton) oder Kamera (Lichtblitze der Rückkamera). Benötigt HTTPS oder localhost sowie Zugriffsrechte für Mikrofon/Kamera.</div>
+        <div class="note" data-i18n="helpDecodeText">Erkennt Morsecode live über Mikrofon (Ton) oder Kamera (Lichtblitze der Rückkamera). Benötigt HTTPS oder localhost sowie Zugriffsrechte für Mikrofon/Kamera.</div>
       </div>
 
-      <div class="note" style="text-align:center;margin-top:6px">© ArkonAlpha 2026 · <span id="appVersion">v6</span></div>
+      <div class="note" style="text-align:center;margin-top:6px">© ArkonAlpha 2026 · <span id="appVersion">v7</span></div>
     </section>
   </main>
 </div>
@@ -476,6 +487,104 @@ const store = {
   get(k,d){ try{const v=localStorage.getItem("morse_"+k);return v==null?d:JSON.parse(v);}catch(e){return d;} },
   set(k,v){ try{localStorage.setItem("morse_"+k,JSON.stringify(v));}catch(e){} }
 };
+
+/* ---------- Übersetzungen ---------- */
+const I18N = {
+  de: {
+    navMenu:"Menü", navTree:"Baum", navSend:"Senden", navLearn:"Lernen", navDecode:"Lesen", navHelp:"Hilfe",
+    navToggleLbl:"Menü öffnen", langToggleLbl:"Sprache wechseln", treeAriaLbl:"Morsebaum",
+    statusReady:"bereit", statusSending:"sendet",
+    treeAudioLbl:"Ton umschalten", treeFlashLbl:"Blitz umschalten",
+    legendDot:"Punkt", legendDash:"Strich",
+    keyDot:"Punkt", keyDash:"Strich",
+    stepBackLbl:"Letzte Eingabe löschen", stepClear:"Text löschen",
+    sendTitle:"Senden", txtInPlaceholder:"Text eingeben, z. B. SOS",
+    tempoLbl:"Tempo", wpmUnit:"WpM",
+    btnAudio:"Ton", btnScreenFlash:"Screen-Blitz", btnTorch:"Taschenlampe",
+    playBtn:"Abspielen", playBtnRunning:"Läuft…", stopBtn:"Stopp",
+    torchNoteInitial:"Taschenlampe: Verfügbarkeit hängt von Gerät und Browser ab, Kamera-Freigabe nötig. Klappt es nicht, automatisch Screen-Blitz nutzen.",
+    torchNoteFail:"<b>Taschenlampe nicht verfügbar.</b> Dieses Gerät/dieser Browser gibt keinen Zugriff auf die Kamera-LED frei, oder die Freigabe wurde abgelehnt. Nutze stattdessen Screen-Blitz.",
+    learnTitle:"Lernen", lessonLbl:"Lektion", charLbl:"Zeichen", correctLbl:"richtig", streakLbl:"Serie",
+    kochHint:"Koch-Methode: pro Lektion ein Zeichen mehr",
+    modeHear:"Hören → Zeichen", modeType:"Zeichen → Klopfen",
+    replayBtn:"Nochmal hören", typeClear:"Löschen", typeSubmit:"Prüfen",
+    refTitle:"Referenz",
+    feedbackRight:"✓ ", feedbackWrongWas:"✗ war ", feedbackWrong:"✗ ", feedbackTypeRight:"✓ richtig", feedbackTypeWrongEq:" = ",
+    decodeTitle:"Lesen", srcMic:"Mikrofon", srcCam:"Kamera-Licht",
+    checkingAccess:"Prüfe Zugriff…", tempoHint:"Tempo-Hinweis",
+    sensLbl:"Empfindlichkeit", expectedWpmLbl:"Erwartetes Tempo (WpM)",
+    stillLbl:"still", signalLbl:"Signal",
+    erkanntLbl:"Erkannt", leerenBtn:"Leeren", startBtn:"Start", stopBtnDecode:"Stopp",
+    noAccess:"kein Zugriff", micReady:"Mikrofon bereit", camReady:"Kamera bereit",
+    noAccessNote:"<b>Läuft nur über HTTPS oder localhost.</b> In der Chat-Vorschau blockiert die Sandbox Kamera und Mikrofon. Datei hosten oder lokal über <code>localhost</code> öffnen, dann funktioniert Start.",
+    camNote:"Halte die blinkende Lichtquelle mittig vor die Rückkamera. Gleichmäßiges Tempo hilft der Erkennung.",
+    micNote:"Halte das Mikrofon nah an die Tonquelle. Nebengeräusche stören die Erkennung.",
+    accessDenied:"<b>Zugriff abgelehnt.</b> ",
+    helpTitle:"Hilfe",
+    helpMenuTitle:"☰ Menü", helpMenuText:"Öffnet die Navigation zwischen Baum, Senden, Lernen, Lesen und dieser Hilfeseite.",
+    helpTreeTitle:"Morsebaum",
+    helpTreeDot:"<b>Punkt</b> · Zweig nach rechts, gleiche Zeile.",
+    helpTreeDash:"<b>Strich</b> · Zweig nach unten, dann rechts.",
+    helpTreeText:"Mit den Tasten <b>Punkt</b>/<b>Strich</b> unten am Baum entlanghangeln. Nach kurzer Pause wird der erreichte Buchstabe automatisch in den Text übernommen. <b>⌫</b> löscht die letzte Eingabe, <b>Text löschen</b> leert den gesamten Puffer. Ein Klick auf einen Knoten im Baum springt direkt zu diesem Buchstaben.",
+    helpToneFlashTitle:"🔊 / ⚡ Ton & Blitz",
+    helpToneFlashText:"Schalten Ton-Ausgabe (Piepton) bzw. Blitz für jeden gesendeten Impuls im Morsebaum ein oder aus. Beim Blitz wird nach Möglichkeit die Taschenlampe genutzt (Kamera-Freigabe nötig), sonst blitzt ersatzweise der Bildschirm. Ein grüner Rahmen zeigt, welche Ausgabe aktiv ist.",
+    helpSendTitle:"Senden",
+    helpSendText:"Text eingeben und über Ton, Bildschirm-Blitz oder Taschenlampe als Morsecode ausgeben. Die Taschenlampe steht nur zur Verfügung, wenn Gerät und Browser das unterstützen und die Kamera-Freigabe erteilt wird — sonst automatisch Bildschirm-Blitz nutzen. Das Tempo lässt sich in WpM (Wörtern pro Minute) einstellen.",
+    helpLearnTitle:"Lernen",
+    helpLearnText:"Koch-Methode: Übung mit wachsender Zeichenmenge, entweder per Gehör (Ton → Buchstabe erkennen) oder per Klopfen (Buchstabe → Punkt/Strich eingeben).",
+    helpDecodeTitle:"Lesen",
+    helpDecodeText:"Erkennt Morsecode live über Mikrofon (Ton) oder Kamera (Lichtblitze der Rückkamera). Benötigt HTTPS oder localhost sowie Zugriffsrechte für Mikrofon/Kamera.",
+    wpmClickHint:"Zu Senden wechseln"
+  },
+  en: {
+    navMenu:"Menu", navTree:"Tree", navSend:"Send", navLearn:"Learn", navDecode:"Decode", navHelp:"Help",
+    navToggleLbl:"Open menu", langToggleLbl:"Switch language", treeAriaLbl:"Morse tree",
+    statusReady:"ready", statusSending:"sending",
+    treeAudioLbl:"Toggle sound", treeFlashLbl:"Toggle flash",
+    legendDot:"Dot", legendDash:"Dash",
+    keyDot:"Dot", keyDash:"Dash",
+    stepBackLbl:"Delete last input", stepClear:"Clear text",
+    sendTitle:"Send", txtInPlaceholder:"Enter text, e.g. SOS",
+    tempoLbl:"Speed", wpmUnit:"WpM",
+    btnAudio:"Sound", btnScreenFlash:"Screen flash", btnTorch:"Flashlight",
+    playBtn:"Play", playBtnRunning:"Playing…", stopBtn:"Stop",
+    torchNoteInitial:"Flashlight: availability depends on device and browser, camera permission required. If it doesn't work, screen flash is used automatically.",
+    torchNoteFail:"<b>Flashlight not available.</b> This device/browser doesn't grant access to the camera LED, or permission was denied. Use screen flash instead.",
+    learnTitle:"Learn", lessonLbl:"Lesson", charLbl:"characters", correctLbl:"correct", streakLbl:"streak",
+    kochHint:"Koch method: one more character per lesson",
+    modeHear:"Listen → Character", modeType:"Character → Tap",
+    replayBtn:"Play again", typeClear:"Clear", typeSubmit:"Check",
+    refTitle:"Reference",
+    feedbackRight:"✓ ", feedbackWrongWas:"✗ was ", feedbackWrong:"✗ ", feedbackTypeRight:"✓ correct", feedbackTypeWrongEq:" = ",
+    decodeTitle:"Decode", srcMic:"Microphone", srcCam:"Camera light",
+    checkingAccess:"Checking access…", tempoHint:"Speed hint",
+    sensLbl:"Sensitivity", expectedWpmLbl:"Expected speed (WpM)",
+    stillLbl:"quiet", signalLbl:"Signal",
+    erkanntLbl:"Detected", leerenBtn:"Clear", startBtn:"Start", stopBtnDecode:"Stop",
+    noAccess:"no access", micReady:"Microphone ready", camReady:"Camera ready",
+    noAccessNote:"<b>Only works over HTTPS or localhost.</b> In the chat preview, the sandbox blocks camera and microphone. Host the file or open it locally via <code>localhost</code> for Start to work.",
+    camNote:"Hold the blinking light source centered in front of the rear camera. A steady rhythm helps recognition.",
+    micNote:"Hold the microphone close to the sound source. Background noise disrupts recognition.",
+    accessDenied:"<b>Access denied.</b> ",
+    helpTitle:"Help",
+    helpMenuTitle:"☰ Menu", helpMenuText:"Opens navigation between Tree, Send, Learn, Decode and this help page.",
+    helpTreeTitle:"Morse tree",
+    helpTreeDot:"<b>Dot</b> · branch to the right, same row.",
+    helpTreeDash:"<b>Dash</b> · branch downward, then right.",
+    helpTreeText:"Use the <b>Dot</b>/<b>Dash</b> buttons below to work your way through the tree. After a short pause the reached letter is automatically added to the text. <b>⌫</b> deletes the last input, <b>Clear text</b> empties the whole buffer. Clicking a node in the tree jumps directly to that letter.",
+    helpToneFlashTitle:"🔊 / ⚡ Sound & flash",
+    helpToneFlashText:"Toggle sound output (beep) and flash for every impulse sent in the Morse tree. For the flash, the flashlight is used when possible (camera permission required), otherwise the screen flashes instead. A green outline shows which output is active.",
+    helpSendTitle:"Send",
+    helpSendText:"Enter text and output it as Morse code via sound, screen flash, or flashlight. The flashlight is only available if the device and browser support it and camera permission is granted — otherwise screen flash is used automatically. Speed can be set in WpM (words per minute).",
+    helpLearnTitle:"Learn",
+    helpLearnText:"Koch method: practice with a growing character set, either by ear (sound → recognize letter) or by tapping (letter → enter dot/dash).",
+    helpDecodeTitle:"Decode",
+    helpDecodeText:"Recognizes Morse code live via microphone (sound) or camera (rear camera light flashes). Requires HTTPS or localhost and microphone/camera permissions.",
+    wpmClickHint:"Switch to Send"
+  }
+};
+let lang = store.get("lang","de");
+function t(key){ return (I18N[lang] && I18N[lang][key]) || I18N.de[key] || key; }
 
 /* ---------- Audio ---------- */
 let actx=null;
@@ -557,30 +666,67 @@ function playText(txt,onSymbol,onDone){
 function stopPlay(){ clearTimers(); flashOn(false); if(state.out.torch)torchSet(false); torchStop(); state.playing=false; setPlayUI(false); }
 function setPlayUI(p){
   const pb=document.getElementById("playBtn"), sb=document.getElementById("stopBtn");
-  if(pb){pb.textContent=p?"Läuft…":"Abspielen"; pb.disabled=p;}
+  if(pb){pb.textContent=p?t("playBtnRunning"):t("playBtn"); pb.disabled=p;}
   if(sb) sb.disabled=!p;
-  document.getElementById("status").firstChild.textContent = p?"sendet":"bereit";
+  document.getElementById("status").firstChild.textContent = p?t("statusSending"):t("statusReady");
 }
+
+/* ---------- Übersetzung anwenden ---------- */
+const viewKeys={tree:"navTree",send:"navSend",learn:"navLearn",decode:"navDecode",help:"navHelp"};
+let curView="tree";
+function applyI18n(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const key=el.dataset.i18n, val=t(key);
+    if(/<[a-z]/i.test(val)) el.innerHTML=val; else el.textContent=val;
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{
+    el.placeholder=t(el.dataset.i18nPlaceholder);
+  });
+  document.querySelectorAll("#langToggle span[data-lang-opt]").forEach(el=>{
+    el.classList.toggle("on", el.dataset.langOpt===lang);
+  });
+  document.getElementById("curViewLbl").textContent="· "+t(viewKeys[curView]);
+  document.getElementById("stepBack").setAttribute("aria-label",t("stepBackLbl"));
+  document.getElementById("treeAudio").setAttribute("aria-label",t("treeAudioLbl"));
+  document.getElementById("treeFlash").setAttribute("aria-label",t("treeFlashLbl"));
+  document.getElementById("status").setAttribute("aria-label",t("wpmClickHint"));
+  document.getElementById("navToggle").setAttribute("aria-label",t("navToggleLbl"));
+  document.getElementById("langToggle").setAttribute("aria-label",t("langToggleLbl"));
+  const treeSvg=document.querySelector("#treeWrap svg"); if(treeSvg) treeSvg.setAttribute("aria-label",t("treeAriaLbl"));
+  document.getElementById("status").firstChild.textContent = state.playing?t("statusSending"):t("statusReady");
+  document.getElementById("wpmLbl").textContent=state.wpm+" "+t("wpmUnit");
+  const pb=document.getElementById("playBtn");
+  if(pb && !state.playing) pb.textContent=t("playBtn");
+  syncOutBtns();
+  checkCaps();
+}
+document.getElementById("langToggle").onclick=()=>{
+  lang = lang==="de" ? "en" : "de";
+  store.set("lang",lang);
+  applyI18n();
+};
 
 /* ---------- Navigation ---------- */
 const navMenu=document.getElementById("navMenu"), navBackdrop=document.getElementById("navBackdrop");
-const viewLabels={tree:"Baum",send:"Senden",learn:"Lernen",decode:"Lesen",help:"Hilfe"};
 function navOpen(){ navMenu.classList.add("open"); navBackdrop.classList.add("open"); }
 function navClose(){ navMenu.classList.remove("open"); navBackdrop.classList.remove("open"); }
 document.getElementById("navToggle").onclick=()=>{ navMenu.classList.contains("open")?navClose():navOpen(); };
 navBackdrop.onclick=navClose;
+function goToView(view){
+  stopPlay(); decStop();
+  if(view!=="tree" && treeOut.useTorch){ torchStop(); treeOut.useTorch=false; }
+  curView=view;
+  document.querySelectorAll("#navMenu button[data-view]").forEach(x=>x.classList.toggle("active",x.dataset.view===view));
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.getElementById("v-"+view).classList.add("active");
+  document.getElementById("curViewLbl").textContent="· "+t(viewKeys[view]);
+  navClose();
+}
 document.querySelectorAll("#navMenu button[data-view]").forEach(b=>{
-  b.onclick=()=>{
-    stopPlay(); decStop();
-    if(b.dataset.view!=="tree" && treeOut.useTorch){ torchStop(); treeOut.useTorch=false; }
-    document.querySelectorAll("#navMenu button[data-view]").forEach(x=>x.classList.remove("active"));
-    b.classList.add("active");
-    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
-    document.getElementById("v-"+b.dataset.view).classList.add("active");
-    document.getElementById("curViewLbl").textContent="· "+viewLabels[b.dataset.view];
-    navClose();
-  };
+  b.onclick=()=>goToView(b.dataset.view);
 });
+document.getElementById("status").onclick=()=>goToView("send");
 
 /* ---------- Baum rendern (rechtwinklig) ---------- */
 const R=10, COLW=54, ROWH=19, PADX=16, PADY=14;
@@ -728,7 +874,7 @@ document.getElementById("mFlash").onclick=()=>{state.out.flash=!state.out.flash;
 document.getElementById("mTorch").onclick=async()=>{
   if(!state.out.torch){
     const ok=await torchInit();
-    if(!ok){ document.getElementById("torchNote").innerHTML="<b>Taschenlampe nicht verfügbar.</b> Dieses Gerät/dieser Browser gibt keinen Zugriff auf die Kamera-LED frei, oder die Freigabe wurde abgelehnt. Nutze stattdessen Screen-Blitz."; torchStop(); return; }
+    if(!ok){ document.getElementById("torchNote").innerHTML=t("torchNoteFail"); torchStop(); return; }
     torchStop(); // erst beim Abspielen dauerhaft öffnen
     state.out.torch=true;
   } else state.out.torch=false;
@@ -738,16 +884,13 @@ const wpm=document.getElementById("wpm");
 wpm.oninput=()=>{
   state.wpm=+wpm.value; store.set("wpm",state.wpm);
   document.getElementById("wpmVal").textContent=state.wpm;
-  document.getElementById("wpmLbl").textContent=state.wpm+" WpM";
+  document.getElementById("wpmLbl").textContent=state.wpm+" "+t("wpmUnit");
 };
 document.getElementById("playBtn").onclick=()=>{
   if(ac()&&ac().state==="suspended")ac().resume();
   playText(txtIn.value,(idx)=>renderMorse(idx),()=>renderMorse());
 };
 document.getElementById("stopBtn").onclick=stopPlay;
-
-/* torch-Hinweis initial */
-document.getElementById("torchNote").textContent="Taschenlampe: Verfügbarkeit hängt von Gerät und Browser ab, Kamera-Freigabe nötig. Klappt es nicht, automatisch Screen-Blitz nutzen.";
 
 /* ---------- Lernen ---------- */
 const learn={ lesson:store.get("lesson",1), mode:"hear", score:store.get("score",0), streak:0, cur:null, buf:"" };
@@ -793,12 +936,12 @@ function answerHear(c){
   const fb=document.getElementById("hearFb");
   if(c===learn.cur){
     learn.score++; learn.streak++; store.set("score",learn.score);
-    fb.textContent="✓ "+learn.cur+"  "+MAP[learn.cur]; fb.className="feedback right";
+    fb.textContent=t("feedbackRight")+learn.cur+"  "+MAP[learn.cur]; fb.className="feedback right";
     if(learn.streak>0&&learn.streak%5===0&&learn.lesson<KOCH.length-1){ learn.lesson++; store.set("lesson",learn.lesson); renderLessonBar(); }
     setTimeout(newHear,700);
   } else {
     learn.streak=0;
-    fb.textContent="✗ war "+learn.cur+"  "+MAP[learn.cur]; fb.className="feedback wrong";
+    fb.textContent=t("feedbackWrongWas")+learn.cur+"  "+MAP[learn.cur]; fb.className="feedback wrong";
   }
   document.getElementById("scoreVal").textContent=learn.score;
   document.getElementById("streakVal").textContent=learn.streak;
@@ -819,12 +962,12 @@ document.getElementById("typeSubmit").onclick=()=>{
   const fb=document.getElementById("typeFb");
   if(learn.buf===MAP[learn.cur]){
     learn.score++;learn.streak++;store.set("score",learn.score);
-    fb.textContent="✓ richtig"; fb.className="feedback right";
+    fb.textContent=t("feedbackTypeRight"); fb.className="feedback right";
     document.getElementById("scoreVal").textContent=learn.score;
     document.getElementById("streakVal").textContent=learn.streak;
     if(learn.streak%5===0&&learn.lesson<KOCH.length-1){learn.lesson++;store.set("lesson",learn.lesson);renderLessonBar();}
     setTimeout(newType,700);
-  } else { learn.streak=0; document.getElementById("streakVal").textContent=0; fb.textContent="✗ "+learn.cur+" = "+MAP[learn.cur]; fb.className="feedback wrong"; }
+  } else { learn.streak=0; document.getElementById("streakVal").textContent=0; fb.textContent=t("feedbackWrong")+learn.cur+t("feedbackTypeWrongEq")+MAP[learn.cur]; fb.className="feedback wrong"; }
 };
 document.getElementById("modeHear").onclick=()=>{
   learn.mode="hear"; document.getElementById("modeHear").classList.add("on");document.getElementById("modeType").classList.remove("on");
@@ -855,14 +998,12 @@ function checkCaps(){
   const hasGUM=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);
   const note=document.getElementById("decNote");
   if(!hasGUM||!secure){
-    pill.textContent="kein Zugriff"; pill.className="pill warn";
-    note.innerHTML="<b>Läuft nur über HTTPS oder localhost.</b> In der Chat-Vorschau blockiert die Sandbox Kamera und Mikrofon. Datei hosten oder lokal über <code>localhost</code> öffnen, dann funktioniert Start.";
+    pill.textContent=t("noAccess"); pill.className="pill warn";
+    note.innerHTML=t("noAccessNote");
     return false;
   }
-  pill.textContent=(dec.src==="mic"?"Mikrofon":"Kamera")+" bereit"; pill.className="pill ok";
-  note.innerHTML=dec.src==="cam"
-    ? "Halte die blinkende Lichtquelle mittig vor die Rückkamera. Gleichmäßiges Tempo hilft der Erkennung."
-    : "Halte das Mikrofon nah an die Tonquelle. Nebengeräusche stören die Erkennung.";
+  pill.textContent=(dec.src==="mic"?t("micReady"):t("camReady")); pill.className="pill ok";
+  note.innerHTML=dec.src==="cam" ? t("camNote") : t("micNote");
   return true;
 }
 
@@ -879,11 +1020,11 @@ async function decStart(){
       const v=document.getElementById("cam"); v.srcObject=dec.camStream; await v.play();
     }
   }catch(e){
-    document.getElementById("decNote").innerHTML="<b>Zugriff abgelehnt.</b> "+e.message;
+    document.getElementById("decNote").innerHTML=t("accessDenied")+e.message;
     return;
   }
   dec.running=true; dec.floorEMA=0; dec.unitEMA=decUnit(); dec.on=false; dec.lastEdge=performance.now();
-  document.getElementById("decStart").textContent="Stopp";
+  document.getElementById("decStart").textContent=t("stopBtnDecode");
   document.getElementById("decStart").classList.remove("primary");
   loop();
 }
@@ -892,7 +1033,7 @@ function decStop(){
   if(dec.raf)cancelAnimationFrame(dec.raf);
   if(dec.audioStream){dec.audioStream.getTracks().forEach(t=>t.stop());dec.audioStream=null;}
   if(dec.camStream){dec.camStream.getTracks().forEach(t=>t.stop());dec.camStream=null;}
-  const b=document.getElementById("decStart"); if(b){b.textContent="Start";b.classList.add("primary");}
+  const b=document.getElementById("decStart"); if(b){b.textContent=t("startBtn");b.classList.add("primary");}
   flushSymbol(true);
 }
 function readLevel(){
@@ -925,7 +1066,7 @@ function loop(){
   document.getElementById("threshMark").style.left=Math.min(100,thr*140)+"%";
   edge(isOn);
   document.getElementById("signalPill").style.color=isOn?"var(--green)":"var(--dim)";
-  document.getElementById("signalTxt").textContent=isOn?"Signal":"still";
+  document.getElementById("signalTxt").textContent=isOn?t("signalLbl"):t("stillLbl");
   dec.raf=requestAnimationFrame(loop);
 }
 function edge(isOn){
@@ -981,10 +1122,9 @@ renderLessonBar();
 newHear();
 document.getElementById("wpmVal").textContent=state.wpm;
 document.getElementById("wpm").value=state.wpm;
-document.getElementById("wpmLbl").textContent=state.wpm+" WpM";
 syncOutBtns();
 document.getElementById("decWpmVal").textContent=dec.wpm;
-checkCaps();
+applyI18n();
 
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>{
