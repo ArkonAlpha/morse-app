@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A1220">
+<meta name="description" content="Morse-Code lernen, senden und lesen – als Progressive Web App, offlinefähig.">
+<title>Morse Code</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<style>
+  :root{
+    --bg:#0A1220;
+    --panel:#0F1B2D;
+    --panel-2:#16233A;
+    --line:#2E4162;
+    --node:#1B2A44;
+    --dim:#7C8DA8;
+    --text:#E7EEF7;
+    --green:#3DE08A;
+    --green-dim:#12492F;
+    --amber:#F5B23D;
+    --danger:#F2685E;
+    --mono:ui-monospace,SFMono-Regular,Menlo,"JetBrains Mono","Cascadia Code",monospace;
+    --sans:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --r:14px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    display:flex;justify-content:center;
+    overscroll-behavior:none;
+  }
+  #app{
+    width:100%;max-width:520px;
+    display:flex;flex-direction:column;
+    min-height:100dvh;
+    position:relative;
+  }
+  /* Header */
+  header{
+    padding:14px 16px calc(14px + env(safe-area-inset-top)) 16px;
+    padding-top:calc(14px + env(safe-area-inset-top));
+    border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    background:linear-gradient(180deg,#0D1728,#0A1220);
+    position:sticky;top:0;z-index:20;
+  }
+  .brand{display:flex;align-items:center;gap:10px;min-width:0}
+  .brand .sig{font-family:var(--mono);color:var(--green);font-size:15px;letter-spacing:2px}
+  .brand h1{
+    font-family:var(--mono);font-size:15px;font-weight:600;
+    letter-spacing:3px;margin:0;text-transform:uppercase;white-space:nowrap;
+  }
+  .status{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:right;line-height:1.4}
+  .status b{color:var(--green);font-weight:600}
+
+  /* Views */
+  main{flex:1;position:relative;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .view{display:none;padding:16px 16px 28px 16px;animation:fade .18s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.view,*{animation:none!important;transition:none!important}}
+
+  h2{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 10px 2px;font-weight:600}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:14px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .grow{flex:1;min-width:0}
+
+  /* Buttons */
+  button.btn{
+    font-family:var(--sans);font-size:14px;font-weight:600;
+    background:var(--panel-2);color:var(--text);
+    border:1px solid var(--line);border-radius:10px;
+    padding:11px 14px;cursor:pointer;transition:.12s;
+    display:inline-flex;align-items:center;gap:8px;justify-content:center;
+  }
+  button.btn:hover{border-color:var(--green)}
+  button.btn:active{transform:scale(.97)}
+  button.btn:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+  button.btn.primary{background:var(--green);color:#062615;border-color:var(--green)}
+  button.btn.amber{background:var(--amber);color:#2a1c00;border-color:var(--amber)}
+  button.btn.ghost{background:transparent}
+  button.btn:disabled{opacity:.4;cursor:not-allowed}
+  button.btn.on{border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset}
+
+  textarea,input[type=text]{
+    width:100%;background:var(--bg);color:var(--text);
+    border:1px solid var(--line);border-radius:10px;padding:12px;
+    font-family:var(--sans);font-size:16px;resize:vertical;
+  }
+  textarea:focus,input:focus{outline:none;border-color:var(--green)}
+  .morseout{
+    font-family:var(--mono);font-size:22px;letter-spacing:2px;color:var(--green);
+    min-height:34px;word-break:break-word;line-height:1.5;
+  }
+  .morseout .cur{background:var(--amber);color:#2a1c00;border-radius:3px;padding:0 2px}
+  label.fld{font-size:12px;color:var(--dim);display:block;margin-bottom:6px;letter-spacing:.5px}
+  input[type=range]{width:100%;accent-color:var(--green)}
+  .val{font-family:var(--mono);color:var(--green);font-size:13px}
+
+  /* Bottom nav */
+  nav{
+    display:flex;border-top:1px solid var(--line);background:#0C1524;
+    padding-bottom:env(safe-area-inset-bottom);
+    position:sticky;bottom:0;z-index:20;
+  }
+  nav button{
+    flex:1;background:none;border:none;color:var(--dim);
+    font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.5px;
+    padding:9px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;
+  }
+  nav button .ic{font-family:var(--mono);font-size:16px;line-height:1}
+  nav button.active{color:var(--green)}
+  nav button:active{opacity:.6}
+
+  /* Tree SVG (rechtwinklig, Gadget-Stil) */
+  #treeWrap{width:100%;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px;max-height:56vh}
+  svg{display:block;width:100%;height:auto}
+  .edge{fill:none;stroke-width:2;transition:stroke .12s}
+  .edge.dot{stroke:#1f4a34}
+  .edge.dash{stroke:#4d2323}
+  .edge.dot.lit{stroke:var(--green)}
+  .edge.dash.lit{stroke:var(--danger)}
+  .mark{transition:.12s}
+  .dotmark{fill:var(--green);opacity:.55}
+  .dashmark{fill:var(--danger);opacity:.55}
+  .mark.lit{opacity:1;filter:drop-shadow(0 0 5px currentColor)}
+  .node circle{fill:var(--node);stroke:var(--line);stroke-width:1.4;transition:.12s;cursor:pointer}
+  .node text{fill:var(--text);font-family:var(--mono);font-size:12px;font-weight:700;text-anchor:middle;dominant-baseline:central;pointer-events:none;user-select:none}
+  .node.lit circle{fill:var(--green);stroke:var(--green)}
+  .node.lit text{fill:#062615}
+  .node.cur circle{fill:var(--amber);stroke:var(--amber);filter:drop-shadow(0 0 8px rgba(245,178,61,.85))}
+  .node.cur text{fill:#2a1c00}
+
+  /* Keyer */
+  .krow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .kpos{display:flex;align-items:center;gap:8px;min-width:0}
+  .kcode{font-family:var(--mono);font-size:20px;letter-spacing:2px;color:var(--green)}
+  .karrow{color:var(--dim);font-size:15px}
+  .kletter{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--amber);line-height:1}
+  .ktoggles{display:flex;gap:8px}
+  .keys{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .keys button{font-size:17px;font-weight:700;padding:20px 0;position:relative}
+  .keyDot{border-color:var(--green)}
+  .keyDot .ico{display:inline-block;width:15px;height:15px;border-radius:50%;background:var(--green);margin-right:9px;vertical-align:middle}
+  .keyDash{border-color:var(--danger)}
+  .keyDash .ico{display:inline-block;width:22px;height:7px;border-radius:4px;background:var(--danger);margin-right:9px;vertical-align:middle}
+  .keys button:active{transform:scale(.96)}
+  .kbuf{font-family:var(--mono);font-size:20px;letter-spacing:2px;word-break:break-word;min-height:26px;flex:1}
+  .btn.small{padding:7px 11px;font-size:13px}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--dim);margin-top:2px;align-items:center}
+  .legend i{font-style:normal;display:inline-flex;align-items:center;gap:6px}
+  .legend .cdot{width:12px;height:12px;border-radius:50%;background:var(--green);display:inline-block}
+  .legend .cbar{width:18px;height:6px;border-radius:3px;background:var(--danger);display:inline-block}
+
+  /* Flash overlay */
+  #flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:9999;transition:opacity .01s}
+  #flash.on{opacity:1}
+
+  /* Meter */
+  .meter{height:10px;background:var(--bg);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-top:6px}
+  .meter i{display:block;height:100%;width:0%;background:var(--green);transition:width .05s}
+  .thresh{position:relative}
+  .thresh .mark{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--amber)}
+
+  .pill{font-family:var(--mono);font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:20px;padding:3px 9px}
+  .pill.ok{color:var(--green);border-color:var(--green-dim)}
+  .pill.warn{color:var(--amber);border-color:#5a4413}
+  .note{font-size:12px;color:var(--dim);line-height:1.5}
+  .note b{color:var(--text)}
+
+  /* Learn */
+  .quizcard{text-align:center;padding:22px 14px}
+  .prompt{font-family:var(--mono);font-size:40px;letter-spacing:4px;color:var(--green);min-height:52px}
+  .prompt.letter{font-size:64px;letter-spacing:0}
+  .opts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+  .opts button{font-family:var(--mono);font-size:20px;padding:14px 0}
+  .feedback{min-height:22px;font-family:var(--mono);font-size:14px;margin-top:10px}
+  .feedback.right{color:var(--green)}
+  .feedback.wrong{color:var(--danger)}
+  .keypad{display:flex;gap:10px;justify-content:center;margin-top:14px}
+  .keypad button{font-family:var(--mono);font-size:26px;width:66px;height:56px}
+  .lessonbar{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+  .lessonbar span{font-family:var(--mono);font-size:13px;width:30px;height:30px;display:grid;place-items:center;border:1px solid var(--line);border-radius:8px;color:var(--dim)}
+  .lessonbar span.on{background:var(--green-dim);color:var(--green);border-color:var(--green)}
+  .stat{font-family:var(--mono);font-size:13px;color:var(--dim)}
+  .stat b{color:var(--green)}
+  .ref{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+  .ref div{display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;padding:6px 10px;background:var(--bg);border-radius:8px;border:1px solid var(--line)}
+  .ref b{color:var(--text)}.ref span{color:var(--green)}
+</style>
+</head>
+<body>
+<div id="flash"></div>
+<div id="app">
+  <header>
+    <div class="brand">
+      <span class="sig">·−</span>
+      <h1>Morse Code</h1>
+    </div>
+    <div class="status" id="status">bereit<br><b id="wpmLbl">12 WpM</b></div>
+  </header>
+
+  <main>
+    <!-- TREE -->
+    <section class="view active" id="v-tree">
+      <h2>Morsebaum</h2>
+      <div id="treeWrap"></div>
+      <div class="legend" style="margin:10px 2px 14px">
+        <i><span class="cdot"></span>Punkt · rechts</i>
+        <i><span class="cbar"></span>Strich − runter</i>
+      </div>
+
+      <div class="card">
+        <div class="krow">
+          <div class="kpos">
+            <span class="kcode" id="stepCode">–</span>
+            <span class="karrow">→</span>
+            <span class="kletter" id="stepLetter">·</span>
+          </div>
+          <div class="ktoggles">
+            <button class="btn small on" id="treeAudio">Ton</button>
+            <button class="btn small on" id="treeFlash">Blitz</button>
+          </div>
+        </div>
+        <div class="keys">
+          <button class="btn keyDot" id="stepDot"><span class="ico"></span>Punkt</button>
+          <button class="btn keyDash" id="stepDash"><span class="ico"></span>Strich</button>
+        </div>
+        <div class="note" style="margin-top:12px">Impuls senden und am Baum entlanghangeln. Nach kurzer Pause wird der Buchstabe in den Text übernommen. ⌫ löscht die letzte Eingabe.</div>
+      </div>
+
+      <div class="card">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <button class="btn ghost" id="stepBack" aria-label="Letzte Eingabe löschen" style="font-size:20px;padding:8px 16px">⌫</button>
+          <div class="kbuf" id="stepBuf"></div>
+          <button class="btn ghost" id="stepClear">Text löschen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEND -->
+    <section class="view" id="v-send">
+      <h2>Senden</h2>
+      <div class="card">
+        <textarea id="txtIn" rows="2" placeholder="Text eingeben, z. B. SOS" spellcheck="false">HALLO WELT</textarea>
+        <div class="morseout" id="morseOut" style="margin-top:12px"></div>
+      </div>
+      <div class="card">
+        <label class="fld">Tempo · <span class="val" id="wpmVal">12</span> WpM</label>
+        <input type="range" id="wpm" min="5" max="30" value="12">
+        <div class="row" style="margin-top:14px">
+          <button class="btn" id="mAudio"><span>Ton</span></button>
+          <button class="btn" id="mFlash"><span>Screen-Blitz</span></button>
+          <button class="btn" id="mTorch"><span>Taschenlampe</span></button>
+        </div>
+        <div class="note" style="margin-top:10px" id="torchNote"></div>
+      </div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <button class="btn primary grow" id="playBtn">Abspielen</button>
+          <button class="btn ghost" id="stopBtn" disabled>Stopp</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- LEARN -->
+    <section class="view" id="v-learn">
+      <h2>Lernen</h2>
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-bottom:8px">
+          <span class="stat">Lektion <b id="lessonNo">1</b> · Zeichen</span>
+          <span class="stat"><b id="scoreVal">0</b> richtig · <span id="streakVal">0</span> Serie</span>
+        </div>
+        <div class="lessonbar" id="lessonBar"></div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn ghost" id="lessonDown">−</button>
+          <div class="grow note" style="text-align:center">Koch-Methode: pro Lektion ein Zeichen mehr</div>
+          <button class="btn ghost" id="lessonUp">+</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row" style="gap:8px;margin-bottom:10px">
+          <button class="btn on grow" id="modeHear">Hören → Zeichen</button>
+          <button class="btn grow" id="modeType">Zeichen → Klopfen</button>
+        </div>
+
+        <div class="quizcard" id="quizHear">
+          <div class="prompt" id="hearPrompt">·− ·−·</div>
+          <button class="btn amber" id="replayBtn" style="margin-top:6px">Nochmal hören</button>
+          <div class="opts" id="hearOpts"></div>
+          <div class="feedback" id="hearFb"></div>
+        </div>
+
+        <div class="quizcard" id="quizType" style="display:none">
+          <div class="prompt letter" id="typePrompt">A</div>
+          <div class="morseout" id="typeBuf" style="text-align:center;font-size:30px;min-height:40px"></div>
+          <div class="keypad">
+            <button class="btn" id="keyDot">·</button>
+            <button class="btn" id="keyDash">−</button>
+          </div>
+          <div class="row" style="justify-content:center;margin-top:10px">
+            <button class="btn ghost" id="typeClear">Löschen</button>
+            <button class="btn primary" id="typeSubmit">Prüfen</button>
+          </div>
+          <div class="feedback" id="typeFb"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:2px">Referenz</h2>
+        <div class="ref" id="refGrid"></div>
+      </div>
+    </section>
+
+    <!-- DECODE -->
+    <section class="view" id="v-decode">
+      <h2>Lesen</h2>
+      <div class="card">
+        <div class="row" style="gap:8px">
+          <button class="btn on grow" id="srcMic">Mikrofon</button>
+          <button class="btn grow" id="srcCam">Kamera-Licht</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <span class="pill" id="capPill">Prüfe Zugriff…</span>
+          <span class="stat">Tempo-Hinweis <b id="decWpmVal">12</b></span>
+        </div>
+        <label class="fld" style="margin-top:12px">Empfindlichkeit</label>
+        <input type="range" id="sens" min="10" max="90" value="40">
+        <label class="fld" style="margin-top:10px">Erwartetes Tempo (WpM)</label>
+        <input type="range" id="decWpm" min="5" max="30" value="12">
+        <div class="meter thresh"><i id="levelBar"></i><span class="mark" id="threshMark"></span></div>
+        <div class="row" style="margin-top:8px">
+          <span class="pill" id="signalPill">●</span>
+          <span class="note" id="signalTxt">still</span>
+        </div>
+      </div>
+
+      <video id="cam" playsinline muted style="display:none"></video>
+      <canvas id="camCanvas" width="64" height="64" style="display:none"></canvas>
+
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-bottom:8px">
+          <label class="fld" style="margin:0">Erkannt</label>
+          <button class="btn ghost" id="decClear">Leeren</button>
+        </div>
+        <div class="morseout" id="decMorse" style="font-size:16px;min-height:24px;color:var(--amber)"></div>
+        <div id="decText" style="font-family:var(--mono);font-size:22px;margin-top:8px;min-height:30px;word-break:break-word"></div>
+      </div>
+
+      <div class="card">
+        <button class="btn primary grow" id="decStart" style="width:100%">Start</button>
+        <div class="note" id="decNote" style="margin-top:10px"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav>
+    <button data-view="tree" class="active"><span class="ic">⋔</span>Baum</button>
+    <button data-view="send"><span class="ic">·−</span>Senden</button>
+    <button data-view="learn"><span class="ic">◈</span>Lernen</button>
+    <button data-view="decode"><span class="ic">◉</span>Lesen</button>
+  </nav>
+</div>
+
+<script>
+"use strict";
+/* ---------- Morse-Daten ---------- */
+const MAP = {
+  A:".-",B:"-...",C:"-.-.",D:"-..",E:".",F:"..-.",G:"--.",H:"....",I:"..",J:".---",
+  K:"-.-",L:".-..",M:"--",N:"-.",O:"---",P:".--.",Q:"--.-",R:".-.",S:"...",T:"-",
+  U:"..-",V:"...-",W:".--",X:"-..-",Y:"-.--",Z:"--..",
+  "0":"-----","1":".----","2":"..---","3":"...--","4":"....-","5":".....",
+  "6":"-....","7":"--...","8":"---..","9":"----.",
+  ".":".-.-.-",",":"--..--","?":"..--..","!":"-.-.--","/":"-..-.","=":"-...-",
+  "+":".-.-.","-":"-....-","@":".--.-.",":":"---...","'":".----.","(":"-.--.",")":"-.--.-"
+};
+const REV = Object.fromEntries(Object.entries(MAP).map(([k,v])=>[v,k]));
+/* Baum-Reihenfolge (nur Buchstaben, Tiefe 4) */
+const TREE = {c:"",dot:{c:"E",dot:{c:"I",dot:{c:"S",dot:{c:"H"},dash:{c:"V"}},dash:{c:"U",dot:{c:"F"}}},
+  dash:{c:"A",dot:{c:"R",dot:{c:"L"}},dash:{c:"W",dot:{c:"P"},dash:{c:"J"}}}},
+  dash:{c:"T",dot:{c:"N",dot:{c:"D",dot:{c:"B"},dash:{c:"X"}},dash:{c:"K",dot:{c:"C"},dash:{c:"Y"}}},
+  dash:{c:"M",dot:{c:"G",dot:{c:"Z"},dash:{c:"Q"}},dash:{c:"O"}}}};
+
+/* Koch-Reihenfolge fürs Lernen */
+const KOCH = ["K","M","U","R","E","S","N","A","P","T","L","W","I",".","J","Z","=","F","O","Y","V",",","G","5","/","Q","9","2","H","3","8","B","?","4","7","C","1","D","6","0","X"];
+
+/* ---------- Storage (offline-safe) ---------- */
+const store = {
+  get(k,d){ try{const v=localStorage.getItem("morse_"+k);return v==null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{localStorage.setItem("morse_"+k,JSON.stringify(v));}catch(e){} }
+};
+
+/* ---------- Audio ---------- */
+let actx=null;
+function ac(){ if(!actx){ try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } return actx; }
+function unit(){ return 1200/state.wpm; } // ms pro Zeiteinheit (PARIS-Standard)
+function beep(ms){
+  const c=ac(); if(!c) return;
+  if(c.state==="suspended") c.resume();
+  const o=c.createOscillator(), g=c.createGain();
+  o.type="sine"; o.frequency.value=600;
+  const t=c.currentTime;
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(.35,t+.005);
+  g.gain.setValueAtTime(.35,t+ms/1000-.005);
+  g.gain.linearRampToValueAtTime(0,t+ms/1000);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t+ms/1000+.02);
+}
+
+/* ---------- Flash + Torch ---------- */
+const flashEl=document.getElementById("flash");
+function flashOn(on){ flashEl.classList.toggle("on",on); }
+let torchTrack=null, torchStream=null;
+async function torchInit(){
+  try{
+    torchStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+    torchTrack=torchStream.getVideoTracks()[0];
+    const caps=torchTrack.getCapabilities?torchTrack.getCapabilities():{};
+    if(!caps.torch){ torchStop(); return false; }
+    return true;
+  }catch(e){ return false; }
+}
+async function torchSet(on){ try{ if(torchTrack) await torchTrack.applyConstraints({advanced:[{torch:on}]}); }catch(e){} }
+function torchStop(){ if(torchStream){torchStream.getTracks().forEach(t=>t.stop());} torchStream=null;torchTrack=null; }
+
+/* ---------- Playback-Engine ---------- */
+const state={ wpm:store.get("wpm",12), out:{audio:true,flash:false,torch:false}, playing:false, timers:[] };
+function textToMorse(txt){
+  return txt.toUpperCase().split("").map(ch=>{
+    if(ch===" ") return "/";
+    return MAP[ch]||"";
+  }).filter(Boolean);
+}
+function clearTimers(){ state.timers.forEach(clearTimeout); state.timers=[]; }
+function sym(on,ms){ // ein An-Intervall ausgeben
+  if(on){
+    if(state.out.audio) beep(ms);
+    if(state.out.flash) flashOn(true);
+    if(state.out.torch) torchSet(true);
+  }
+}
+function symOff(){ flashOn(false); if(state.out.torch) torchSet(false); }
+
+async function playText(txt,onSymbol,onDone){
+  stopPlay();
+  if(state.out.torch){ const ok=await torchInit(); if(!ok){ state.out.torch=false; syncOutBtns(); } }
+  const u=unit(); const groups=textToMorse(txt);
+  let seq=[]; // {type:'on'|'off', ms, idx}
+  groups.forEach((g,gi)=>{
+    if(g==="/"){ seq.push({type:"off",ms:7*u}); return; }
+    [...g].forEach((s,si)=>{
+      seq.push({type:"on",ms:(s==="."?1:3)*u,idx:gi,sym:si});
+      seq.push({type:"off",ms:1*u}); // Intra-Zeichen-Lücke
+    });
+    seq[seq.length-1].ms=3*u; // Ende Buchstabe → 3u Lücke
+  });
+  state.playing=true; setPlayUI(true);
+  let t=0;
+  seq.forEach(step=>{
+    state.timers.push(setTimeout(()=>{
+      if(step.type==="on"){ sym(true,step.ms); if(onSymbol) onSymbol(step.idx); }
+      else symOff();
+    },t));
+    t+=step.ms;
+  });
+  state.timers.push(setTimeout(()=>{ stopPlay(); if(onDone)onDone(); },t+60));
+}
+function stopPlay(){ clearTimers(); flashOn(false); if(state.out.torch)torchSet(false); torchStop(); state.playing=false; setPlayUI(false); }
+function setPlayUI(p){
+  const pb=document.getElementById("playBtn"), sb=document.getElementById("stopBtn");
+  if(pb){pb.textContent=p?"Läuft…":"Abspielen"; pb.disabled=p;}
+  if(sb) sb.disabled=!p;
+  document.getElementById("status").firstChild.textContent = p?"sendet":"bereit";
+}
+
+/* ---------- Navigation ---------- */
+document.querySelectorAll("nav button").forEach(b=>{
+  b.onclick=()=>{
+    stopPlay(); decStop();
+    document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    document.getElementById("v-"+b.dataset.view).classList.add("active");
+  };
+});
+
+/* ---------- Baum rendern (rechtwinklig) ---------- */
+const R=13, COLW=80, ROWH=30, PADX=26, PADY=22;
+function buildTree(){
+  let idc=0, curRow=0; const nodes=[];
+  function place(n,depth,parent,sym){
+    n._id=idc++; n._depth=depth; n._parent=parent; n._sym=sym; n._row=curRow;
+    nodes.push(n);
+    if(n.dot) place(n.dot,depth+1,n,".");
+    if(n.dash){ curRow++; place(n.dash,depth+1,n,"-"); }
+  }
+  place(TREE,0,null,null);
+  const rows=curRow+1, maxDepth=Math.max(...nodes.map(n=>n._depth));
+  const sx=d=>PADX+d*COLW, sy=r=>PADY+r*ROWH;
+  const W=PADX*2+maxDepth*COLW, H=PADY*2+(rows-1)*ROWH;
+  let edges="", marks="", ncode="";
+  nodes.forEach(n=>{
+    if(!n._parent) return;
+    const p=n._parent, px=sx(p._depth), py=sy(p._row), cx=sx(n._depth), cy=sy(n._row);
+    if(n._sym==="."){ // Punkt: gerade nach rechts, gleiche Reihe
+      edges+=`<path class="edge dot" id="edge-${n._id}" d="M${px+R} ${py} L${cx-R} ${cy}"/>`;
+      const mx=(px+cx)/2;
+      marks+=`<circle class="mark dotmark" id="mark-${n._id}" cx="${mx}" cy="${py}" r="5"/>`;
+    } else { // Strich: runter, dann rechts (Elbow)
+      edges+=`<path class="edge dash" id="edge-${n._id}" d="M${px} ${py+R} L${px} ${cy} L${cx-R} ${cy}"/>`;
+      const my=(py+R+cy)/2;
+      marks+=`<rect class="mark dashmark" id="mark-${n._id}" x="${px-8}" y="${my-3}" width="16" height="6" rx="3"/>`;
+    }
+  });
+  nodes.forEach(n=>{
+    const x=sx(n._depth), y=sy(n._row);
+    if(!n.c){ ncode+=`<circle cx="${x}" cy="${y}" r="6" fill="var(--dim)" opacity=".7"/>`; return; }
+    ncode+=`<g class="node" id="node-${n._id}" data-c="${n.c}"><circle cx="${x}" cy="${y}" r="${R}"/><text x="${x}" y="${y}">${n.c}</text></g>`;
+  });
+  document.getElementById("treeWrap").innerHTML=
+    `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Morsebaum">${edges}${marks}${ncode}</svg>`;
+  document.querySelectorAll(".node").forEach(g=>{ g.onclick=()=>treeJump(g.dataset.c); });
+}
+
+/* ---------- Keyer: am Baum entlanghangeln ---------- */
+let treeCur=TREE, treeCode="", treeBuf="", treeCommit=null;
+const treeOut={audio:true,flash:true};
+function syncTreeOut(){
+  document.getElementById("treeAudio").classList.toggle("on",treeOut.audio);
+  document.getElementById("treeFlash").classList.toggle("on",treeOut.flash);
+}
+function treeRender(){
+  document.querySelectorAll(".node").forEach(n=>n.classList.remove("cur","lit"));
+  document.querySelectorAll(".edge").forEach(e=>e.classList.remove("lit"));
+  document.querySelectorAll(".mark").forEach(m=>m.classList.remove("lit"));
+  let node=TREE;
+  for(const s of treeCode){
+    node = s==="."?node.dot:node.dash; if(!node) break;
+    document.getElementById("node-"+node._id)?.classList.add("lit");
+    document.getElementById("edge-"+node._id)?.classList.add("lit");
+    document.getElementById("mark-"+node._id)?.classList.add("lit");
+  }
+  if(treeCur!==TREE) document.getElementById("node-"+treeCur._id)?.classList.add("cur");
+  document.getElementById("stepCode").textContent = treeCode?treeCode.replaceAll(".","·").replaceAll("-","−"):"–";
+  document.getElementById("stepLetter").textContent = treeCur.c||"·";
+  document.getElementById("stepBuf").textContent = treeBuf;
+}
+function impulse(sym){
+  const ms=(sym==="."?1:3)*unit();
+  if(treeOut.audio){ if(ac()&&ac().state==="suspended")ac().resume(); beep(ms); }
+  if(treeOut.flash){ flashOn(true); setTimeout(()=>flashOn(false),ms*.9); }
+}
+function treeStep(sym){
+  const next = sym==="."?treeCur.dot:treeCur.dash;
+  impulse(sym);
+  if(!next) return; // Zweigende: nur Impuls, keine Bewegung
+  treeCur=next; treeCode+=sym; treeRender(); scheduleCommit(1400);
+}
+function scheduleCommit(delay){
+  clearTimeout(treeCommit);
+  treeCommit=setTimeout(()=>{
+    if(treeCur!==TREE && treeCur.c) treeBuf+=treeCur.c;
+    treeCur=TREE; treeCode=""; treeRender();
+  },delay);
+}
+function treeBack(){
+  clearTimeout(treeCommit);
+  if(treeCode){ treeCur=TREE; treeCode=""; treeRender(); return; } // laufende Eingabe abbrechen
+  if(treeBuf){ treeBuf=treeBuf.slice(0,-1); treeRender(); }        // sonst letzten Buchstaben löschen
+}
+function treeClear(){ treeBuf=""; treeRender(); }
+function treeJump(letter){
+  clearTimeout(treeCommit);
+  const code=MAP[letter]; if(!code) return;
+  let node=TREE; for(const s of code) node=s==="."?node.dot:node.dash;
+  treeCur=node; treeCode=code; treeRender();
+  const u=unit(); let t=0;
+  [...code].forEach(s=>{ const ms=(s==="."?1:3)*u; setTimeout(()=>{ if(treeOut.audio)beep(ms); if(treeOut.flash){flashOn(true);setTimeout(()=>flashOn(false),ms*.9);} },t); t+=ms+u; });
+  scheduleCommit(t+1200);
+}
+document.getElementById("stepDot").onclick=()=>treeStep(".");
+document.getElementById("stepDash").onclick=()=>treeStep("-");
+document.getElementById("stepBack").onclick=treeBack;
+document.getElementById("stepClear").onclick=treeClear;
+document.getElementById("treeAudio").onclick=()=>{treeOut.audio=!treeOut.audio;syncTreeOut();};
+document.getElementById("treeFlash").onclick=()=>{treeOut.flash=!treeOut.flash;syncTreeOut();};
+document.addEventListener("keydown",e=>{
+  if(!document.getElementById("v-tree").classList.contains("active")) return;
+  if(e.key==="."||e.key==="ArrowUp"){treeStep(".");e.preventDefault();}
+  else if(e.key==="-"||e.key==="ArrowDown"){treeStep("-");e.preventDefault();}
+  else if(e.key==="Backspace"||e.key==="Escape"){treeBack();e.preventDefault();}
+});
+
+/* ---------- Senden UI ---------- */
+const txtIn=document.getElementById("txtIn"), morseOut=document.getElementById("morseOut");
+function renderMorse(hi=-1){
+  const groups=textToMorse(txtIn.value);
+  morseOut.innerHTML=groups.map((g,i)=>{
+    if(g==="/") return "<span style='opacity:.4'>/</span>";
+    const cls=i===hi?"cur":"";
+    return `<span class="${cls}">${g}</span>`;
+  }).join("&nbsp;&nbsp;");
+}
+txtIn.oninput=()=>renderMorse();
+function syncOutBtns(){
+  document.getElementById("mAudio").classList.toggle("on",state.out.audio);
+  document.getElementById("mFlash").classList.toggle("on",state.out.flash);
+  document.getElementById("mTorch").classList.toggle("on",state.out.torch);
+}
+document.getElementById("mAudio").onclick=()=>{state.out.audio=!state.out.audio;syncOutBtns();};
+document.getElementById("mFlash").onclick=()=>{state.out.flash=!state.out.flash;syncOutBtns();};
+document.getElementById("mTorch").onclick=async()=>{
+  if(!state.out.torch){
+    const ok=await torchInit();
+    if(!ok){ document.getElementById("torchNote").innerHTML="<b>Taschenlampe nicht verfügbar.</b> iOS/Safari gibt den Blitz nicht frei. Auf Desktop fehlt die Hardware. Nutze Screen-Blitz. (Android Chrome über HTTPS unterstützt Torch.)"; torchStop(); return; }
+    torchStop(); // erst beim Abspielen dauerhaft öffnen
+    state.out.torch=true;
+  } else state.out.torch=false;
+  syncOutBtns();
+};
+const wpm=document.getElementById("wpm");
+wpm.oninput=()=>{
+  state.wpm=+wpm.value; store.set("wpm",state.wpm);
+  document.getElementById("wpmVal").textContent=state.wpm;
+  document.getElementById("wpmLbl").textContent=state.wpm+" WpM";
+};
+document.getElementById("playBtn").onclick=()=>{
+  if(ac()&&ac().state==="suspended")ac().resume();
+  playText(txtIn.value,(idx)=>renderMorse(idx),()=>renderMorse());
+};
+document.getElementById("stopBtn").onclick=stopPlay;
+
+/* torch-Hinweis initial */
+(function(){
+  const ua=navigator.userAgent;
+  const isIOS=/iPad|iPhone|iPod/.test(ua)|| (navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+  const n=document.getElementById("torchNote");
+  if(isIOS) n.innerHTML="Auf iPhone/iPad steuert keine Web-App den Blitz. Screen-Blitz nutzen.";
+  else n.textContent="Taschenlampe: nur Android Chrome über HTTPS.";
+})();
+
+/* ---------- Lernen ---------- */
+const learn={ lesson:store.get("lesson",1), mode:"hear", score:store.get("score",0), streak:0, cur:null, buf:"" };
+function lessonSet(){ return KOCH.slice(0,Math.max(2,learn.lesson+1)); } // Lektion 1 = 2 Zeichen
+function renderLessonBar(){
+  const set=lessonSet();
+  document.getElementById("lessonNo").textContent=learn.lesson;
+  document.getElementById("scoreVal").textContent=learn.score;
+  document.getElementById("streakVal").textContent=learn.streak;
+  document.getElementById("lessonBar").innerHTML=KOCH.slice(0,Math.min(KOCH.length,learn.lesson+3))
+    .map((c,i)=>`<span class="${i<set.length?'on':''}">${c}</span>`).join("");
+  renderRef();
+}
+function renderRef(){
+  const set=lessonSet();
+  document.getElementById("refGrid").innerHTML=set.map(c=>`<div><b>${c}</b><span>${MAP[c]}</span></div>`).join("");
+}
+function rndChar(){ const s=lessonSet(); return s[Math.floor(Math.random()*s.length)]; }
+function newHear(){
+  learn.cur=rndChar();
+  document.getElementById("hearFb").textContent="";
+  document.getElementById("hearFb").className="feedback";
+  document.getElementById("hearPrompt").textContent=MAP[learn.cur];
+  // Optionen (gegen zu kleine Lektionsmengen abgesichert)
+  const pool=lessonSet();
+  const nOpts=Math.min(4,pool.length);
+  const chosen=new Set([learn.cur]);
+  let guard=0;
+  while(chosen.size<nOpts && guard++<200){ chosen.add(pool[Math.floor(Math.random()*pool.length)]); }
+  const opts=[...chosen].sort(()=>Math.random()-.5);
+  const oc=document.getElementById("hearOpts");
+  oc.style.gridTemplateColumns=`repeat(${opts.length},1fr)`;
+  oc.innerHTML=opts.map(c=>`<button class="btn" data-c="${c}">${c}</button>`).join("");
+  document.querySelectorAll("#hearOpts button").forEach(b=>b.onclick=()=>answerHear(b.dataset.c));
+  setTimeout(()=>playChar(learn.cur),250);
+}
+function playChar(c){
+  if(ac()&&ac().state==="suspended")ac().resume();
+  const u=unit(),code=MAP[c]; let t=0;
+  [...code].forEach(s=>{ setTimeout(()=>beep((s==="."?1:3)*u),t); t+=(s==="."?1:3)*u+u; });
+}
+function answerHear(c){
+  const fb=document.getElementById("hearFb");
+  if(c===learn.cur){
+    learn.score++; learn.streak++; store.set("score",learn.score);
+    fb.textContent="✓ "+learn.cur+"  "+MAP[learn.cur]; fb.className="feedback right";
+    if(learn.streak>0&&learn.streak%5===0&&learn.lesson<KOCH.length-1){ learn.lesson++; store.set("lesson",learn.lesson); renderLessonBar(); }
+    setTimeout(newHear,700);
+  } else {
+    learn.streak=0;
+    fb.textContent="✗ war "+learn.cur+"  "+MAP[learn.cur]; fb.className="feedback wrong";
+  }
+  document.getElementById("scoreVal").textContent=learn.score;
+  document.getElementById("streakVal").textContent=learn.streak;
+}
+document.getElementById("replayBtn").onclick=()=>learn.cur&&playChar(learn.cur);
+
+/* Type-Modus */
+function newType(){
+  learn.cur=rndChar(); learn.buf="";
+  document.getElementById("typePrompt").textContent=learn.cur;
+  document.getElementById("typeBuf").textContent="";
+  const fb=document.getElementById("typeFb"); fb.textContent=""; fb.className="feedback";
+}
+document.getElementById("keyDot").onclick=()=>{learn.buf+=".";document.getElementById("typeBuf").textContent=learn.buf.replaceAll(".","·").replaceAll("-","−");beep(unit());};
+document.getElementById("keyDash").onclick=()=>{learn.buf+="-";document.getElementById("typeBuf").textContent=learn.buf.replaceAll(".","·").replaceAll("-","−");beep(3*unit());};
+document.getElementById("typeClear").onclick=()=>{learn.buf="";document.getElementById("typeBuf").textContent="";};
+document.getElementById("typeSubmit").onclick=()=>{
+  const fb=document.getElementById("typeFb");
+  if(learn.buf===MAP[learn.cur]){
+    learn.score++;learn.streak++;store.set("score",learn.score);
+    fb.textContent="✓ richtig"; fb.className="feedback right";
+    document.getElementById("scoreVal").textContent=learn.score;
+    document.getElementById("streakVal").textContent=learn.streak;
+    if(learn.streak%5===0&&learn.lesson<KOCH.length-1){learn.lesson++;store.set("lesson",learn.lesson);renderLessonBar();}
+    setTimeout(newType,700);
+  } else { learn.streak=0; document.getElementById("streakVal").textContent=0; fb.textContent="✗ "+learn.cur+" = "+MAP[learn.cur]; fb.className="feedback wrong"; }
+};
+document.getElementById("modeHear").onclick=()=>{
+  learn.mode="hear"; document.getElementById("modeHear").classList.add("on");document.getElementById("modeType").classList.remove("on");
+  document.getElementById("quizHear").style.display="";document.getElementById("quizType").style.display="none"; newHear();
+};
+document.getElementById("modeType").onclick=()=>{
+  learn.mode="type"; document.getElementById("modeType").classList.add("on");document.getElementById("modeHear").classList.remove("on");
+  document.getElementById("quizType").style.display="";document.getElementById("quizHear").style.display="none"; newType();
+};
+document.getElementById("lessonUp").onclick=()=>{if(learn.lesson<KOCH.length-1){learn.lesson++;store.set("lesson",learn.lesson);renderLessonBar();learn.mode==="hear"?newHear():newType();}};
+document.getElementById("lessonDown").onclick=()=>{if(learn.lesson>1){learn.lesson--;store.set("lesson",learn.lesson);renderLessonBar();learn.mode==="hear"?newHear():newType();}};
+
+/* ---------- Dekoder (Mic + Kamera) ---------- */
+const dec={ src:"mic", running:false, level:0, floorEMA:0, on:false, lastEdge:0, unitEMA:0, buf:"", morse:"", text:"", raf:null,
+  audioStream:null, analyser:null, data:null, camStream:null, sens:40, wpm:12 };
+
+function decUnit(){ return 1200/dec.wpm; }
+document.getElementById("srcMic").onclick=()=>{decStop();dec.src="mic";document.getElementById("srcMic").classList.add("on");document.getElementById("srcCam").classList.remove("on");checkCaps();};
+document.getElementById("srcCam").onclick=()=>{decStop();dec.src="cam";document.getElementById("srcCam").classList.add("on");document.getElementById("srcMic").classList.remove("on");checkCaps();};
+document.getElementById("sens").oninput=e=>dec.sens=+e.target.value;
+document.getElementById("decWpm").oninput=e=>{dec.wpm=+e.target.value;document.getElementById("decWpmVal").textContent=dec.wpm;};
+document.getElementById("decClear").onclick=()=>{dec.buf="";dec.morse="";dec.text="";updateDecOut();};
+document.getElementById("decStart").onclick=()=>{ dec.running?decStop():decStart(); };
+
+function checkCaps(){
+  const pill=document.getElementById("capPill");
+  const secure=window.isSecureContext;
+  const hasGUM=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);
+  const note=document.getElementById("decNote");
+  if(!hasGUM||!secure){
+    pill.textContent="kein Zugriff"; pill.className="pill warn";
+    note.innerHTML="<b>Läuft nur über HTTPS oder localhost.</b> In der Chat-Vorschau blockiert die Sandbox Kamera und Mikrofon. Datei hosten oder lokal über <code>localhost</code> öffnen, dann funktioniert Start.";
+    return false;
+  }
+  pill.textContent=(dec.src==="mic"?"Mikrofon":"Kamera")+" bereit"; pill.className="pill ok";
+  note.innerHTML=dec.src==="cam"
+    ? "Halte die blinkende Lichtquelle mittig vor die Rückkamera. Gleichmäßiges Tempo hilft der Erkennung."
+    : "Halte das Mikrofon nah an die Tonquelle. Nebengeräusche stören die Erkennung.";
+  return true;
+}
+
+async function decStart(){
+  if(!checkCaps()) return;
+  try{
+    if(dec.src==="mic"){
+      dec.audioStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+      const c=ac(); const src=c.createMediaStreamSource(dec.audioStream);
+      dec.analyser=c.createAnalyser(); dec.analyser.fftSize=1024;
+      dec.data=new Uint8Array(dec.analyser.fftSize); src.connect(dec.analyser);
+    } else {
+      dec.camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+      const v=document.getElementById("cam"); v.srcObject=dec.camStream; await v.play();
+    }
+  }catch(e){
+    document.getElementById("decNote").innerHTML="<b>Zugriff abgelehnt.</b> "+e.message;
+    return;
+  }
+  dec.running=true; dec.floorEMA=0; dec.unitEMA=decUnit(); dec.on=false; dec.lastEdge=performance.now();
+  document.getElementById("decStart").textContent="Stopp";
+  document.getElementById("decStart").classList.remove("primary");
+  loop();
+}
+function decStop(){
+  dec.running=false;
+  if(dec.raf)cancelAnimationFrame(dec.raf);
+  if(dec.audioStream){dec.audioStream.getTracks().forEach(t=>t.stop());dec.audioStream=null;}
+  if(dec.camStream){dec.camStream.getTracks().forEach(t=>t.stop());dec.camStream=null;}
+  const b=document.getElementById("decStart"); if(b){b.textContent="Start";b.classList.add("primary");}
+  flushSymbol(true);
+}
+function readLevel(){
+  if(dec.src==="mic"){
+    if(!dec.analyser) return 0;
+    dec.analyser.getByteTimeDomainData(dec.data);
+    let sum=0; for(let i=0;i<dec.data.length;i++){const x=(dec.data[i]-128)/128;sum+=x*x;}
+    return Math.sqrt(sum/dec.data.length); // RMS 0..1
+  } else {
+    const v=document.getElementById("cam"),cv=document.getElementById("camCanvas");
+    if(!v.videoWidth) return 0;
+    const g=cv.getContext("2d"); g.drawImage(v,0,0,64,64);
+    const d=g.getImageData(20,20,24,24).data; let sum=0;
+    for(let i=0;i<d.length;i+=4){sum+=(d[i]+d[i+1]+d[i+2])/3;}
+    return (sum/(d.length/4))/255; // Helligkeit 0..1
+  }
+}
+function loop(){
+  if(!dec.running) return;
+  const raw=readLevel();
+  dec.level=dec.level*0.6+raw*0.4;
+  // adaptiver Grundpegel
+  dec.floorEMA = dec.floorEMA*0.98 + Math.min(dec.level,dec.floorEMA||dec.level)*0.02;
+  if(dec.floorEMA===0) dec.floorEMA=dec.level;
+  const span=Math.max(0.02, dec.level - dec.floorEMA);
+  const thr = dec.floorEMA + (dec.sens/100)*0.5 + 0.02;
+  const isOn = dec.level > thr;
+  // UI-Meter
+  document.getElementById("levelBar").style.width=Math.min(100,dec.level*140)+"%";
+  document.getElementById("threshMark").style.left=Math.min(100,thr*140)+"%";
+  edge(isOn);
+  document.getElementById("signalPill").style.color=isOn?"var(--green)":"var(--dim)";
+  document.getElementById("signalTxt").textContent=isOn?"Signal":"still";
+  dec.raf=requestAnimationFrame(loop);
+}
+function edge(isOn){
+  const now=performance.now();
+  if(isOn===dec.on) {
+    // langes Off → Zeichen/Wortende auswerten
+    if(!isOn){ checkGaps(now-dec.lastEdge); }
+    return;
+  }
+  const dur=now-dec.lastEdge;
+  if(dec.on && !isOn){ // war AN, jetzt AUS → Ton beenden
+    classifyOn(dur);
+  }
+  dec.on=isOn; dec.lastEdge=now;
+}
+function classifyOn(dur){
+  const u=dec.unitEMA||decUnit();
+  if(dur < 0.4*u) return; // Störspitze ignorieren
+  if(dur < 2*u){ dec.buf+="."; dec.unitEMA = dec.unitEMA? dec.unitEMA*0.8+dur*0.2 : dur; }
+  else { dec.buf+="-"; }
+  dec.morse=(dec.morse+" "+ (dec.buf.slice(-1)===""? "":dec.buf.slice(-1))).trim();
+  updateLive();
+}
+let gapDone=false;
+function checkGaps(offDur){
+  const u=dec.unitEMA||decUnit();
+  if(dec.buf && offDur>2.5*u){ // Buchstabe fertig
+    flushSymbol(false);
+  }
+  if(offDur>6*u && dec.text && !dec.text.endsWith(" ")){ dec.text+=" "; updateDecOut(); }
+}
+function flushSymbol(final){
+  if(!dec.buf) return;
+  const ch=REV[dec.buf]||"■";
+  dec.text+=ch; dec.morse+=" / ";
+  dec.buf="";
+  updateDecOut();
+}
+function updateLive(){
+  document.getElementById("decMorse").textContent=(dec.morse+"  "+dec.buf).replaceAll(".","·").replaceAll("-","−");
+}
+function updateDecOut(){
+  document.getElementById("decMorse").textContent=dec.morse.replaceAll(".","·").replaceAll("-","−");
+  document.getElementById("decText").textContent=dec.text;
+}
+
+/* ---------- Init ---------- */
+buildTree();
+treeRender();
+syncTreeOut();
+renderMorse();
+renderLessonBar();
+newHear();
+document.getElementById("wpmVal").textContent=state.wpm;
+document.getElementById("wpm").value=state.wpm;
+document.getElementById("wpmLbl").textContent=state.wpm+" WpM";
+syncOutBtns();
+document.getElementById("decWpmVal").textContent=dec.wpm;
+checkCaps();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
