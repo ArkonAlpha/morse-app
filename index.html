@@ -444,7 +444,7 @@
         <div class="note">Erkennt Morsecode live über Mikrofon (Ton) oder Kamera (Lichtblitze der Rückkamera). Benötigt HTTPS oder localhost sowie Zugriffsrechte für Mikrofon/Kamera.</div>
       </div>
 
-      <div class="note" style="text-align:center;margin-top:6px">© ArkonAlpha 2026 · <span id="appVersion">v5</span></div>
+      <div class="note" style="text-align:center;margin-top:6px">© ArkonAlpha 2026 · <span id="appVersion">v6</span></div>
     </section>
   </main>
 </div>
@@ -622,7 +622,7 @@ function buildTree(){
 
 /* ---------- Keyer: am Baum entlanghangeln ---------- */
 let treeCur=TREE, treeCode="", treeBuf="", treeCommit=null;
-const treeOut={audio:true,flash:true,useTorch:false};
+const treeOut={audio:true,flash:false,useTorch:false};
 function syncTreeOut(){
   document.getElementById("treeAudio").classList.toggle("on",treeOut.audio);
   document.getElementById("treeFlash").classList.toggle("on",treeOut.flash);

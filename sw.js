@@ -1,5 +1,5 @@
 "use strict";
-const CACHE = "morse-cache-v5";
+const CACHE = "morse-cache-v6";
 const ASSETS = [
   "./",
   "./index.html",
