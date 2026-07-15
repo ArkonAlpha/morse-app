@@ -427,7 +427,7 @@
         <div class="row" style="justify-content:space-between;margin-bottom:8px">
           <span class="note"><b>Senden</b></span>
         </div>
-        <div class="note">Text eingeben und über Ton, Bildschirm-Blitz oder (nur Android Chrome) Taschenlampe als Morsecode ausgeben. Das Tempo lässt sich in WpM (Wörtern pro Minute) einstellen.</div>
+        <div class="note">Text eingeben und über Ton, Bildschirm-Blitz oder Taschenlampe als Morsecode ausgeben. Die Taschenlampe steht nur zur Verfügung, wenn Gerät und Browser das unterstützen und die Kamera-Freigabe erteilt wird — sonst automatisch Bildschirm-Blitz nutzen. Das Tempo lässt sich in WpM (Wörtern pro Minute) einstellen.</div>
       </div>
 
       <div class="card">
@@ -444,7 +444,7 @@
         <div class="note">Erkennt Morsecode live über Mikrofon (Ton) oder Kamera (Lichtblitze der Rückkamera). Benötigt HTTPS oder localhost sowie Zugriffsrechte für Mikrofon/Kamera.</div>
       </div>
 
-      <div class="note" style="text-align:center;margin-top:6px">© ArkonAlpha 2026</div>
+      <div class="note" style="text-align:center;margin-top:6px">© ArkonAlpha 2026 · <span id="appVersion">v5</span></div>
     </section>
   </main>
 </div>
@@ -728,7 +728,7 @@ document.getElementById("mFlash").onclick=()=>{state.out.flash=!state.out.flash;
 document.getElementById("mTorch").onclick=async()=>{
   if(!state.out.torch){
     const ok=await torchInit();
-    if(!ok){ document.getElementById("torchNote").innerHTML="<b>Taschenlampe nicht verfügbar.</b> iOS/Safari gibt den Blitz nicht frei. Auf Desktop fehlt die Hardware. Nutze Screen-Blitz. (Android Chrome über HTTPS unterstützt Torch.)"; torchStop(); return; }
+    if(!ok){ document.getElementById("torchNote").innerHTML="<b>Taschenlampe nicht verfügbar.</b> Dieses Gerät/dieser Browser gibt keinen Zugriff auf die Kamera-LED frei, oder die Freigabe wurde abgelehnt. Nutze stattdessen Screen-Blitz."; torchStop(); return; }
     torchStop(); // erst beim Abspielen dauerhaft öffnen
     state.out.torch=true;
   } else state.out.torch=false;
@@ -747,13 +747,7 @@ document.getElementById("playBtn").onclick=()=>{
 document.getElementById("stopBtn").onclick=stopPlay;
 
 /* torch-Hinweis initial */
-(function(){
-  const ua=navigator.userAgent;
-  const isIOS=/iPad|iPhone|iPod/.test(ua)|| (navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
-  const n=document.getElementById("torchNote");
-  if(isIOS) n.innerHTML="Auf iPhone/iPad steuert keine Web-App den Blitz. Screen-Blitz nutzen.";
-  else n.textContent="Taschenlampe: nur Android Chrome über HTTPS.";
-})();
+document.getElementById("torchNote").textContent="Taschenlampe: Verfügbarkeit hängt von Gerät und Browser ab, Kamera-Freigabe nötig. Klappt es nicht, automatisch Screen-Blitz nutzen.";
 
 /* ---------- Lernen ---------- */
 const learn={ lesson:store.get("lesson",1), mode:"hear", score:store.get("score",0), streak:0, cur:null, buf:"" };
