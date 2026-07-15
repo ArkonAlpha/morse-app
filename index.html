@@ -26,7 +26,7 @@
     --sans:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
     --r:14px;
   }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   html,body{margin:0;height:100%}
   body{
     background:var(--bg);
@@ -420,7 +420,7 @@
         <div class="row" style="justify-content:space-between;margin-bottom:8px">
           <span class="note"><b>🔊 / ⚡ Ton &amp; Blitz</b></span>
         </div>
-        <div class="note">Schalten Ton-Ausgabe (Piepton) bzw. Bildschirm-Blitz für jeden gesendeten Impuls im Morsebaum ein oder aus. Ein grüner Rahmen zeigt, welche Ausgabe aktiv ist.</div>
+        <div class="note">Schalten Ton-Ausgabe (Piepton) bzw. Blitz für jeden gesendeten Impuls im Morsebaum ein oder aus. Beim Blitz wird nach Möglichkeit die Taschenlampe genutzt (Kamera-Freigabe nötig), sonst blitzt ersatzweise der Bildschirm. Ein grüner Rahmen zeigt, welche Ausgabe aktiv ist.</div>
       </div>
 
       <div class="card">
@@ -528,9 +528,11 @@ function sym(on,ms){ // ein An-Intervall ausgeben
 }
 function symOff(){ flashOn(false); if(state.out.torch) torchSet(false); }
 
-async function playText(txt,onSymbol,onDone){
+function playText(txt,onSymbol,onDone){
   stopPlay();
-  if(state.out.torch){ const ok=await torchInit(); if(!ok){ state.out.torch=false; syncOutBtns(); } }
+  if(state.out.torch){
+    torchInit().then(ok=>{ if(!ok){ state.out.torch=false; syncOutBtns(); } });
+  }
   const u=unit(); const groups=textToMorse(txt);
   let seq=[]; // {type:'on'|'off', ms, idx}
   groups.forEach((g,gi)=>{
@@ -570,6 +572,7 @@ navBackdrop.onclick=navClose;
 document.querySelectorAll("#navMenu button[data-view]").forEach(b=>{
   b.onclick=()=>{
     stopPlay(); decStop();
+    if(b.dataset.view!=="tree" && treeOut.useTorch){ torchStop(); treeOut.useTorch=false; }
     document.querySelectorAll("#navMenu button[data-view]").forEach(x=>x.classList.remove("active"));
     b.classList.add("active");
     document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
@@ -619,10 +622,28 @@ function buildTree(){
 
 /* ---------- Keyer: am Baum entlanghangeln ---------- */
 let treeCur=TREE, treeCode="", treeBuf="", treeCommit=null;
-const treeOut={audio:true,flash:true};
+const treeOut={audio:true,flash:true,useTorch:false};
 function syncTreeOut(){
   document.getElementById("treeAudio").classList.toggle("on",treeOut.audio);
   document.getElementById("treeFlash").classList.toggle("on",treeOut.flash);
+}
+function treeImpulseFlash(on){
+  if(treeOut.useTorch) torchSet(on);
+  else flashOn(on);
+}
+async function treeFlashToggle(){
+  if(treeOut.flash){ // ausschalten
+    treeOut.flash=false;
+    if(treeOut.useTorch){ torchStop(); treeOut.useTorch=false; }
+    syncTreeOut();
+    return;
+  }
+  // einschalten: Taschenlampe versuchen, sonst Bildschirm-Blitz als Fallback
+  const ok=await torchInit();
+  treeOut.useTorch=ok;
+  if(!ok) torchStop();
+  treeOut.flash=true;
+  syncTreeOut();
 }
 function treeRender(){
   document.querySelectorAll(".node").forEach(n=>n.classList.remove("cur","lit"));
@@ -643,7 +664,7 @@ function treeRender(){
 function impulse(sym){
   const ms=(sym==="."?1:3)*unit();
   if(treeOut.audio){ if(ac()&&ac().state==="suspended")ac().resume(); beep(ms); }
-  if(treeOut.flash){ flashOn(true); setTimeout(()=>flashOn(false),ms*.9); }
+  if(treeOut.flash){ treeImpulseFlash(true); setTimeout(()=>treeImpulseFlash(false),ms*.9); }
 }
 function treeStep(sym){
   const next = sym==="."?treeCur.dot:treeCur.dash;
@@ -670,7 +691,7 @@ function treeJump(letter){
   let node=TREE; for(const s of code) node=s==="."?node.dot:node.dash;
   treeCur=node; treeCode=code; treeRender();
   const u=unit(); let t=0;
-  [...code].forEach(s=>{ const ms=(s==="."?1:3)*u; setTimeout(()=>{ if(treeOut.audio)beep(ms); if(treeOut.flash){flashOn(true);setTimeout(()=>flashOn(false),ms*.9);} },t); t+=ms+u; });
+  [...code].forEach(s=>{ const ms=(s==="."?1:3)*u; setTimeout(()=>{ if(treeOut.audio)beep(ms); if(treeOut.flash){treeImpulseFlash(true);setTimeout(()=>treeImpulseFlash(false),ms*.9);} },t); t+=ms+u; });
   scheduleCommit(t+1200);
 }
 document.getElementById("stepDot").onclick=()=>treeStep(".");
@@ -678,7 +699,7 @@ document.getElementById("stepDash").onclick=()=>treeStep("-");
 document.getElementById("stepBack").onclick=treeBack;
 document.getElementById("stepClear").onclick=treeClear;
 document.getElementById("treeAudio").onclick=()=>{treeOut.audio=!treeOut.audio;syncTreeOut();};
-document.getElementById("treeFlash").onclick=()=>{treeOut.flash=!treeOut.flash;syncTreeOut();};
+document.getElementById("treeFlash").onclick=treeFlashToggle;
 document.addEventListener("keydown",e=>{
   if(!document.getElementById("v-tree").classList.contains("active")) return;
   if(e.key==="."||e.key==="ArrowUp"){treeStep(".");e.preventDefault();}
