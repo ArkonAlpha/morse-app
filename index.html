@@ -170,6 +170,7 @@
   .kcode{font-family:var(--mono);font-size:20px;letter-spacing:2px;color:var(--green)}
   .karrow{color:var(--dim);font-size:15px}
   .kletter{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--amber);line-height:1}
+  .sendLetter{font-family:var(--mono);font-size:34px;font-weight:700;color:var(--amber);line-height:1;min-height:42px;margin-top:10px;text-align:center}
   .ktoggles{display:flex;gap:8px}
   .keys{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .keys button{font-size:16px;font-weight:700;padding:15px 0;position:relative}
@@ -220,6 +221,13 @@
   .ref{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
   .ref div{display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;padding:6px 10px;background:var(--bg);border-radius:8px;border:1px solid var(--line)}
   .ref b{color:var(--text)}.ref span{color:var(--green)}
+  .ref.hidden{display:none}
+  .refCover{
+    display:block;text-align:center;padding:22px 10px;color:var(--dim);
+    font-size:13px;background:var(--bg);border:1px dashed var(--line);border-radius:8px;
+    cursor:pointer;user-select:none;
+  }
+  .refCover.hidden{display:none}
 </style>
 </head>
 <body>
@@ -289,6 +297,7 @@
       <div class="card">
         <textarea id="txtIn" rows="2" data-i18n-placeholder="txtInPlaceholder" placeholder="Text eingeben, z. B. SOS" spellcheck="false">HALLO WELT</textarea>
         <div class="morseout" id="morseOut" style="margin-top:12px"></div>
+        <div class="sendLetter" id="sendLetter"></div>
       </div>
       <div class="card">
         <label class="fld"><span data-i18n="tempoLbl">Tempo</span> · <span class="val" id="wpmVal">12</span> <span data-i18n="wpmUnit">WpM</span></label>
@@ -353,8 +362,11 @@
       </div>
 
       <div class="card">
-        <h2 style="margin-top:2px" data-i18n="refTitle">Referenz</h2>
-        <div class="ref" id="refGrid"></div>
+        <div class="sechead" style="margin-bottom:10px">
+          <h2 style="margin:0" data-i18n="refTitle">Referenz</h2>
+        </div>
+        <div class="refCover" id="refCover" data-i18n="refCoverHint">Zum Anzeigen tippen</div>
+        <div class="ref hidden" id="refGrid"></div>
       </div>
     </section>
 
@@ -455,7 +467,7 @@
         <div class="note" data-i18n="helpDecodeText">Erkennt Morsecode live über Mikrofon (Ton) oder Kamera (Lichtblitze der Rückkamera). Benötigt HTTPS oder localhost sowie Zugriffsrechte für Mikrofon/Kamera.</div>
       </div>
 
-      <div class="note" style="text-align:center;margin-top:6px">© ArkonAlpha 2026 · <span id="appVersion">v7</span></div>
+      <div class="note" style="text-align:center;margin-top:6px">© ArkonAlpha 2026 · mcm6920@gmail.com · <span id="appVersion">v8</span></div>
     </section>
   </main>
 </div>
@@ -508,8 +520,8 @@ const I18N = {
     kochHint:"Koch-Methode: pro Lektion ein Zeichen mehr",
     modeHear:"Hören → Zeichen", modeType:"Zeichen → Klopfen",
     replayBtn:"Nochmal hören", typeClear:"Löschen", typeSubmit:"Prüfen",
-    refTitle:"Referenz",
-    feedbackRight:"✓ ", feedbackWrongWas:"✗ war ", feedbackWrong:"✗ ", feedbackTypeRight:"✓ richtig", feedbackTypeWrongEq:" = ",
+    refTitle:"Referenz", refCoverHint:"Zum Anzeigen tippen",
+    feedbackRightLetter:"✓ Richtig: ", feedbackWrongHear:"✗ Falsch – richtig wäre: ", feedbackTypeRight:"✓ Richtig", feedbackWrongType:"✗ Falsch – ", feedbackIs:" ist ",
     decodeTitle:"Lesen", srcMic:"Mikrofon", srcCam:"Kamera-Licht",
     checkingAccess:"Prüfe Zugriff…", tempoHint:"Tempo-Hinweis",
     sensLbl:"Empfindlichkeit", expectedWpmLbl:"Erwartetes Tempo (WpM)",
@@ -554,8 +566,8 @@ const I18N = {
     kochHint:"Koch method: one more character per lesson",
     modeHear:"Listen → Character", modeType:"Character → Tap",
     replayBtn:"Play again", typeClear:"Clear", typeSubmit:"Check",
-    refTitle:"Reference",
-    feedbackRight:"✓ ", feedbackWrongWas:"✗ was ", feedbackWrong:"✗ ", feedbackTypeRight:"✓ correct", feedbackTypeWrongEq:" = ",
+    refTitle:"Reference", refCoverHint:"Tap to reveal",
+    feedbackRightLetter:"✓ Correct: ", feedbackWrongHear:"✗ Wrong – correct was: ", feedbackTypeRight:"✓ Correct", feedbackWrongType:"✗ Wrong – ", feedbackIs:" is ",
     decodeTitle:"Decode", srcMic:"Microphone", srcCam:"Camera light",
     checkingAccess:"Checking access…", tempoHint:"Speed hint",
     sensLbl:"Sensitivity", expectedWpmLbl:"Expected speed (WpM)",
@@ -626,6 +638,9 @@ function textToMorse(txt){
     if(ch===" ") return "/";
     return MAP[ch]||"";
   }).filter(Boolean);
+}
+function textToChars(txt){
+  return txt.toUpperCase().split("").filter(ch=>ch===" "||MAP[ch]);
 }
 function clearTimers(){ state.timers.forEach(clearTimeout); state.timers=[]; }
 function sym(on,ms){ // ein An-Intervall ausgeben
@@ -862,6 +877,8 @@ function renderMorse(hi=-1){
     const cls=i===hi?"cur":"";
     return `<span class="${cls}">${g}</span>`;
   }).join("&nbsp;&nbsp;");
+  const chars=textToChars(txtIn.value);
+  document.getElementById("sendLetter").textContent = (hi>=0 && chars[hi] && chars[hi]!==" ") ? chars[hi] : "";
 }
 txtIn.oninput=()=>renderMorse();
 function syncOutBtns(){
@@ -908,6 +925,14 @@ function renderRef(){
   const set=lessonSet();
   document.getElementById("refGrid").innerHTML=set.map(c=>`<div><b>${c}</b><span>${MAP[c]}</span></div>`).join("");
 }
+document.getElementById("refCover").onclick=()=>{
+  document.getElementById("refCover").classList.add("hidden");
+  document.getElementById("refGrid").classList.remove("hidden");
+};
+document.getElementById("refGrid").onclick=()=>{
+  document.getElementById("refGrid").classList.add("hidden");
+  document.getElementById("refCover").classList.remove("hidden");
+};
 function rndChar(){ const s=lessonSet(); return s[Math.floor(Math.random()*s.length)]; }
 function newHear(){
   learn.cur=rndChar();
@@ -936,12 +961,12 @@ function answerHear(c){
   const fb=document.getElementById("hearFb");
   if(c===learn.cur){
     learn.score++; learn.streak++; store.set("score",learn.score);
-    fb.textContent=t("feedbackRight")+learn.cur+"  "+MAP[learn.cur]; fb.className="feedback right";
+    fb.textContent=t("feedbackRightLetter")+learn.cur+" ("+MAP[learn.cur]+")"; fb.className="feedback right";
     if(learn.streak>0&&learn.streak%5===0&&learn.lesson<KOCH.length-1){ learn.lesson++; store.set("lesson",learn.lesson); renderLessonBar(); }
     setTimeout(newHear,700);
   } else {
     learn.streak=0;
-    fb.textContent=t("feedbackWrongWas")+learn.cur+"  "+MAP[learn.cur]; fb.className="feedback wrong";
+    fb.textContent=t("feedbackWrongHear")+learn.cur+" ("+MAP[learn.cur]+")"; fb.className="feedback wrong";
   }
   document.getElementById("scoreVal").textContent=learn.score;
   document.getElementById("streakVal").textContent=learn.streak;
@@ -967,7 +992,7 @@ document.getElementById("typeSubmit").onclick=()=>{
     document.getElementById("streakVal").textContent=learn.streak;
     if(learn.streak%5===0&&learn.lesson<KOCH.length-1){learn.lesson++;store.set("lesson",learn.lesson);renderLessonBar();}
     setTimeout(newType,700);
-  } else { learn.streak=0; document.getElementById("streakVal").textContent=0; fb.textContent=t("feedbackWrong")+learn.cur+t("feedbackTypeWrongEq")+MAP[learn.cur]; fb.className="feedback wrong"; }
+  } else { learn.streak=0; document.getElementById("streakVal").textContent=0; fb.textContent=t("feedbackWrongType")+learn.cur+t("feedbackIs")+MAP[learn.cur]; fb.className="feedback wrong"; }
 };
 document.getElementById("modeHear").onclick=()=>{
   learn.mode="hear"; document.getElementById("modeHear").classList.add("on");document.getElementById("modeType").classList.remove("on");
