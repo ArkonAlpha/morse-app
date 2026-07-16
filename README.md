@@ -12,7 +12,7 @@ Eine Progressive Web App zum Lernen, Senden und Erkennen von Morse-Code – dire
 ## Hinweise
 
 - Kamera- und Mikrofon-Features (`getUserMedia`) funktionieren nur in einem sicheren Kontext: **HTTPS** oder `localhost`.
-- Die Taschenlampen-Ausgabe (Torch) wird nur von **Android Chrome** unterstützt; andere Browser/Plattformen (insbesondere iOS Safari) bieten dafür keine Web-API.
+- Die Taschenlampen-Ausgabe (Torch) wird nur von **Android Chrome und ausgewählten iOS Versionen** unterstützt; andere Browser/Plattformen bieten dafür keine Web-API.
 - Reines **Vanilla JS/HTML/CSS** – kein Build-Prozess, keine Abhängigkeiten, keine Frameworks.
 
 ## Lokal starten
