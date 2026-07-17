@@ -357,7 +357,6 @@
           </div>
           <div class="row" style="justify-content:center;margin-top:10px">
             <button class="btn ghost" id="typeClear" data-i18n="typeClear">Löschen</button>
-            <button class="btn primary" id="typeSubmit" data-i18n="typeSubmit">Prüfen</button>
           </div>
           <div class="feedback" id="typeFb"></div>
         </div>
@@ -469,7 +468,7 @@
         <div class="note" data-i18n="helpDecodeText">Erkennt Morsecode live über Mikrofon (Ton) oder Kamera (Lichtblitze der Rückkamera). Benötigt HTTPS oder localhost sowie Zugriffsrechte für Mikrofon/Kamera.</div>
       </div>
 
-      <div class="note" style="text-align:center;margin-top:6px">© ArkonAlpha 2026 · fruchtig.diskutiert_4p@icloud.com · <span id="appVersion">v9</span></div>
+      <div class="note" style="text-align:center;margin-top:6px">© ArkonAlpha 2026 · fruchtig.diskutiert_4p@icloud.com · <span id="appVersion">v10</span></div>
     </section>
   </main>
 </div>
@@ -521,7 +520,7 @@ const I18N = {
     learnTitle:"Lernen", lessonLbl:"Lektion", charLbl:"Zeichen", correctLbl:"richtig", streakLbl:"Serie",
     kochHint:"Koch-Methode: pro Lektion ein Zeichen mehr",
     modeHear:"Hören → Zeichen", modeType:"Zeichen → Morsen",
-    replayBtn:"Nochmal hören", typeClear:"Löschen", typeSubmit:"Prüfen",
+    replayBtn:"Nochmal hören", typeClear:"Löschen",
     refTitle:"Referenz", refCoverHint:"Zum Anzeigen tippen",
     feedbackRightLetter:"✓ Richtig: ", feedbackWrongHear:"✗ Falsch – richtig wäre: ", feedbackTypeRight:"✓ Richtig", feedbackWrongType:"✗ Falsch – ", feedbackIs:" ist ",
     decodeTitle:"Lesen", srcMic:"Mikrofon", srcCam:"Kamera-Licht",
@@ -567,7 +566,7 @@ const I18N = {
     learnTitle:"Learn", lessonLbl:"Lesson", charLbl:"characters", correctLbl:"correct", streakLbl:"streak",
     kochHint:"Koch method: one more character per lesson",
     modeHear:"Listen → Character", modeType:"Character → Tap",
-    replayBtn:"Play again", typeClear:"Clear", typeSubmit:"Check",
+    replayBtn:"Play again", typeClear:"Clear",
     refTitle:"Reference", refCoverHint:"Tap to reveal",
     feedbackRightLetter:"✓ Correct: ", feedbackWrongHear:"✗ Wrong – correct was: ", feedbackTypeRight:"✓ Correct", feedbackWrongType:"✗ Wrong – ", feedbackIs:" is ",
     decodeTitle:"Decode", srcMic:"Microphone", srcCam:"Camera light",
@@ -615,6 +614,18 @@ function beep(ms){
   g.gain.setValueAtTime(.35,t+ms/1000-.005);
   g.gain.linearRampToValueAtTime(0,t+ms/1000);
   o.connect(g).connect(c.destination); o.start(t); o.stop(t+ms/1000+.02);
+}
+function warnBeep(){
+  const c=ac(); if(!c) return;
+  if(c.state==="suspended") c.resume();
+  const o=c.createOscillator(), g=c.createGain();
+  o.type="square"; o.frequency.setValueAtTime(220,c.currentTime); o.frequency.linearRampToValueAtTime(110,c.currentTime+.18);
+  const t=c.currentTime;
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(.3,t+.01);
+  g.gain.setValueAtTime(.3,t+.15);
+  g.gain.linearRampToValueAtTime(0,t+.18);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t+.2);
 }
 
 /* ---------- Flash + Torch ---------- */
@@ -982,20 +993,28 @@ function newType(){
   document.getElementById("typeBuf").textContent="";
   const fb=document.getElementById("typeFb"); fb.textContent=""; fb.className="feedback";
 }
-document.getElementById("keyDot").onclick=()=>{learn.buf+=".";document.getElementById("typeBuf").textContent=learn.buf.replaceAll(".","·").replaceAll("-","−");beep(unit());};
-document.getElementById("keyDash").onclick=()=>{learn.buf+="-";document.getElementById("typeBuf").textContent=learn.buf.replaceAll(".","·").replaceAll("-","−");beep(3*unit());};
-document.getElementById("typeClear").onclick=()=>{learn.buf="";document.getElementById("typeBuf").textContent="";};
-document.getElementById("typeSubmit").onclick=()=>{
-  const fb=document.getElementById("typeFb");
-  if(learn.buf===MAP[learn.cur]){
+function typeInput(sym){
+  learn.buf+=sym;
+  document.getElementById("typeBuf").textContent=learn.buf.replaceAll(".","·").replaceAll("-","−");
+  beep(sym==="."?unit():3*unit());
+  const code=MAP[learn.cur], fb=document.getElementById("typeFb");
+  if(!code.startsWith(learn.buf)){
+    warnBeep();
+    learn.streak=0; document.getElementById("streakVal").textContent=0;
+    fb.textContent=t("feedbackWrongType")+learn.cur+t("feedbackIs")+code; fb.className="feedback wrong";
+    learn.buf=""; document.getElementById("typeBuf").textContent="";
+  } else if(learn.buf===code){
     learn.score++;learn.streak++;store.set("score",learn.score);
     fb.textContent=t("feedbackTypeRight"); fb.className="feedback right";
     document.getElementById("scoreVal").textContent=learn.score;
     document.getElementById("streakVal").textContent=learn.streak;
     if(learn.streak%5===0&&learn.lesson<KOCH.length-1){learn.lesson++;store.set("lesson",learn.lesson);renderLessonBar();}
     setTimeout(newType,700);
-  } else { learn.streak=0; document.getElementById("streakVal").textContent=0; fb.textContent=t("feedbackWrongType")+learn.cur+t("feedbackIs")+MAP[learn.cur]; fb.className="feedback wrong"; }
-};
+  }
+}
+document.getElementById("keyDot").onclick=()=>typeInput(".");
+document.getElementById("keyDash").onclick=()=>typeInput("-");
+document.getElementById("typeClear").onclick=()=>{learn.buf="";document.getElementById("typeBuf").textContent="";};
 document.getElementById("modeHear").onclick=()=>{
   learn.mode="hear"; document.getElementById("modeHear").classList.add("on");document.getElementById("modeType").classList.remove("on");
   document.getElementById("quizHear").style.display="";document.getElementById("quizType").style.display="none"; newHear();
