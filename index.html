@@ -213,6 +213,8 @@
   .feedback.wrong{color:var(--danger)}
   .keypad{display:flex;gap:10px;justify-content:center;margin-top:14px}
   .keypad button{font-family:var(--mono);font-size:26px;width:66px;height:56px}
+  #keyDot{border-color:var(--green);color:var(--green)}
+  #keyDash{border-color:var(--danger);color:var(--danger)}
   .lessonbar{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
   .lessonbar span{font-family:var(--mono);font-size:13px;width:30px;height:30px;display:grid;place-items:center;border:1px solid var(--line);border-radius:8px;color:var(--dim)}
   .lessonbar span.on{background:var(--green-dim);color:var(--green);border-color:var(--green)}
@@ -336,7 +338,7 @@
       <div class="card">
         <div class="row" style="gap:8px;margin-bottom:10px">
           <button class="btn on grow" id="modeHear" data-i18n="modeHear">Hören → Zeichen</button>
-          <button class="btn grow" id="modeType" data-i18n="modeType">Zeichen → Klopfen</button>
+          <button class="btn grow" id="modeType" data-i18n="modeType">Zeichen → Morsen</button>
         </div>
 
         <div class="quizcard" id="quizHear">
@@ -457,7 +459,7 @@
         <div class="row" style="justify-content:space-between;margin-bottom:8px">
           <span class="note"><b data-i18n="helpLearnTitle">Lernen</b></span>
         </div>
-        <div class="note" data-i18n="helpLearnText">Koch-Methode: Übung mit wachsender Zeichenmenge, entweder per Gehör (Ton → Buchstabe erkennen) oder per Klopfen (Buchstabe → Punkt/Strich eingeben).</div>
+        <div class="note" data-i18n="helpLearnText">Koch-Methode: Übung mit wachsender Zeichenmenge, entweder per Gehör (Ton → Buchstabe erkennen) oder per Morsen (Buchstabe → Punkt/Strich eingeben).</div>
       </div>
 
       <div class="card">
@@ -467,7 +469,7 @@
         <div class="note" data-i18n="helpDecodeText">Erkennt Morsecode live über Mikrofon (Ton) oder Kamera (Lichtblitze der Rückkamera). Benötigt HTTPS oder localhost sowie Zugriffsrechte für Mikrofon/Kamera.</div>
       </div>
 
-      <div class="note" style="text-align:center;margin-top:6px">© ArkonAlpha 2026 · mcm6920@gmail.com · <span id="appVersion">v8</span></div>
+      <div class="note" style="text-align:center;margin-top:6px">© ArkonAlpha 2026 · fruchtig.diskutiert_4p@icloud.com · <span id="appVersion">v9</span></div>
     </section>
   </main>
 </div>
@@ -518,7 +520,7 @@ const I18N = {
     torchNoteFail:"<b>Taschenlampe nicht verfügbar.</b> Dieses Gerät/dieser Browser gibt keinen Zugriff auf die Kamera-LED frei, oder die Freigabe wurde abgelehnt. Nutze stattdessen Screen-Blitz.",
     learnTitle:"Lernen", lessonLbl:"Lektion", charLbl:"Zeichen", correctLbl:"richtig", streakLbl:"Serie",
     kochHint:"Koch-Methode: pro Lektion ein Zeichen mehr",
-    modeHear:"Hören → Zeichen", modeType:"Zeichen → Klopfen",
+    modeHear:"Hören → Zeichen", modeType:"Zeichen → Morsen",
     replayBtn:"Nochmal hören", typeClear:"Löschen", typeSubmit:"Prüfen",
     refTitle:"Referenz", refCoverHint:"Zum Anzeigen tippen",
     feedbackRightLetter:"✓ Richtig: ", feedbackWrongHear:"✗ Falsch – richtig wäre: ", feedbackTypeRight:"✓ Richtig", feedbackWrongType:"✗ Falsch – ", feedbackIs:" ist ",
@@ -543,7 +545,7 @@ const I18N = {
     helpSendTitle:"Senden",
     helpSendText:"Text eingeben und über Ton, Bildschirm-Blitz oder Taschenlampe als Morsecode ausgeben. Die Taschenlampe steht nur zur Verfügung, wenn Gerät und Browser das unterstützen und die Kamera-Freigabe erteilt wird — sonst automatisch Bildschirm-Blitz nutzen. Das Tempo lässt sich in WpM (Wörtern pro Minute) einstellen.",
     helpLearnTitle:"Lernen",
-    helpLearnText:"Koch-Methode: Übung mit wachsender Zeichenmenge, entweder per Gehör (Ton → Buchstabe erkennen) oder per Klopfen (Buchstabe → Punkt/Strich eingeben).",
+    helpLearnText:"Koch-Methode: Übung mit wachsender Zeichenmenge, entweder per Gehör (Ton → Buchstabe erkennen) oder per Morsen (Buchstabe → Punkt/Strich eingeben).",
     helpDecodeTitle:"Lesen",
     helpDecodeText:"Erkennt Morsecode live über Mikrofon (Ton) oder Kamera (Lichtblitze der Rückkamera). Benötigt HTTPS oder localhost sowie Zugriffsrechte für Mikrofon/Kamera.",
     wpmClickHint:"Zu Senden wechseln"
